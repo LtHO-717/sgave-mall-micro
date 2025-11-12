@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: sgave-mall-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848  # nacos?????????8848
+    gateway:
+      routes:
+        - id: order
+          uri: lb://sgave-mall-order
+          predicates:
+            - Path=/order/**
+        - id: goods
+          uri: lb://sgave-mall-goods
+          predicates:
+            - Path=/goods/**
+        - id: inventory
+          uri: lb://sgave-mall-inventory
+          predicates:
+            - Path=/inventory/**
+
+
+gateway:
+  cors:
+    allowed-origins:
+      - http://localhost:9527
+      - http://192.168.1.140:3000
+      - http://192.168.1.25:9010
+      - http://192.168.1.26:9011

@@ -1,0 +1,197 @@
+package com.sgave.mall.sgavemallorder.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sgave.mall.constant.AdminResponseCode;
+import com.sgave.mall.sgavemallorder.constant.OrderConstant;
+import com.sgave.mall.sgavemallorder.dto.Order;
+import com.sgave.mall.sgavemallorder.dto.OrderItem;
+import com.sgave.mall.sgavemallorder.dto.RefundStockItemDTO;
+import com.sgave.mall.sgavemallorder.dto.RefundStockMessage;
+import com.sgave.mall.sgavemallorder.mapper.OrderItemMapper;
+import com.sgave.mall.sgavemallorder.mapper.OrderMapper;
+import com.sgave.mall.sgavemallorder.service.AdminOrderService;
+import com.sgave.mall.util.JacksonUtil;
+import com.sgave.mall.util.ResponseUtil;
+import jakarta.annotation.Resource;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * @author : zeping
+ * @description :
+ * @createDate : 2025/11/7
+ */
+@Service
+public class AdminOrderServiceImpl implements AdminOrderService {
+
+    @Resource
+    private OrderMapper orderMapper;
+
+    @Resource
+    private OrderItemMapper orderItemMapper;
+
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
+
+    private static final String REFUND_STOCK_TOPIC = "refund-stock-topic";
+
+
+    @Override
+    public Object list(Integer userId, String orderSn, LocalDateTime start, LocalDateTime end, List<Short> orderStatusArray, Integer page, Integer limit, String sort, String order) {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+
+        // 构造查询条件
+        wrapper.eq(userId != null, Order::getUserId, userId)
+                .eq(StringUtils.hasText(orderSn), Order::getOrderNo, orderSn)
+                .ge(start != null, Order::getCreateTime, start)
+                .le(end != null, Order::getCancelTime, end)
+                .in(orderStatusArray != null && !orderStatusArray.isEmpty(), Order::getStatus, orderStatusArray);
+
+        // 排序
+        if (StringUtils.hasText(sort) && StringUtils.hasText(order)) {
+            boolean isAsc = "asc".equalsIgnoreCase(order);
+            wrapper.orderBy(true, isAsc, Order::getCreateTime);
+        }
+
+        // 分页
+        Page<Order> pageInfo = new Page<>(page, limit);
+        IPage<Order> resultPage = orderMapper.selectPage(pageInfo, wrapper);
+
+        return resultPage.getRecords();
+    }
+
+    @Override
+    public Object detail(Integer id) {
+        Order order = orderMapper.selectById(id);
+        if (order == null) {
+            return ResponseUtil.ok(null);
+        }
+        List<OrderItem> orderItems = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, id));
+        Map<String, Object> data = new HashMap<>();
+        data.put("order", order);
+        data.put("orderItems", orderItems);
+        return ResponseUtil.ok(data);
+    }
+
+
+    @Override
+    @Transactional
+    public Object refund(String body) {
+        Integer orderId = JacksonUtil.parseInteger(body, "orderId");
+        String refundMoney = JacksonUtil.parseString(body, "refundMoney");
+        if (orderId == null) {
+            return ResponseUtil.badArgument();
+        }
+        if (StringUtils.isEmpty(refundMoney)) {
+            return ResponseUtil.badArgument();
+        }
+
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            return ResponseUtil.badArgument();
+        }
+
+        if (order.getPayAmount().compareTo(new BigDecimal(refundMoney)) != 0) {
+            return ResponseUtil.badArgumentValue();
+        }
+
+        // 如果订单不是退款状态，则不能退款
+        if (!order.getStatus().equals(OrderConstant.STATUS_REFUNDING)) {
+            return ResponseUtil.fail(AdminResponseCode.ORDER_CONFIRM_NOT_ALLOWED, "订单不能确认收货");
+        }
+
+        Date now = new Date();
+        // 设置订单取消状态
+        order.setStatus(OrderConstant.STATUS_REFUNDED);
+        order.setCancelTime(now);
+        orderMapper.updateById(order);
+
+        // 商品货品数量增加
+        List<OrderItem> orderItems = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
+//        for (OrderItem orderItem : orderItems) {
+//            Long productId = orderItem.getProductId();
+//            Integer number = orderItem.getQuantity();
+//            TODO用Mq实现
+//            if (adminProductFacadeService.addStock(productId, number) == 0) {
+//                throw new RuntimeException("商品货品库存增加失败");
+//            }
+//        }
+
+        List<RefundStockItemDTO> refundStockItemDTOS = orderItems.stream().map(orderItem -> {
+            RefundStockItemDTO refundStockItemDTO = new RefundStockItemDTO();
+            refundStockItemDTO.setProductId(orderItem.getProductId());
+            refundStockItemDTO.setQuantity(orderItem.getQuantity());
+            return refundStockItemDTO;
+        }).toList();
+
+        // 发送库存回补消息
+        RefundStockMessage message = new RefundStockMessage();
+        message.setOrderId(orderId);
+        message.setItems(refundStockItemDTOS);
+
+        try {
+            rocketMQTemplate.convertAndSend(REFUND_STOCK_TOPIC, message);
+        } catch (Exception e) {
+            throw new RuntimeException("发送库存回补消息失败", e);
+        }
+
+        return ResponseUtil.ok();
+    }
+
+    /**
+     * 订单发货
+     *
+     * @param orderId
+     * @return
+     */
+    @Override
+    public Object ship(String orderId) {
+        if (orderId == null) {
+            return ResponseUtil.badArgumentValue();
+        }
+        Order order = orderMapper.selectOne(new LambdaQueryWrapper<Order>().eq(Order::getId, orderId));
+        if (order == null) {
+            return ResponseUtil.badArgumentValue();
+        }
+
+        // 如果订单不是已付款状态，则不能发货
+        if (!order.getStatus().equals(OrderConstant.STATUS_PAY)) {
+            return ResponseUtil.fail(OrderConstant.ORDER_CONFIRM_NOT_ALLOWED, "订单不能确认收货");
+        }
+
+        order.setStatus(OrderConstant.STATUS_SHIP);
+        order.setDeliveryTime(new Date());
+        orderMapper.updateById(order);
+        return ResponseUtil.ok();
+    }
+
+
+    @Override
+    public Object delete(String body) {
+        Integer orderId = JacksonUtil.parseInteger(body, "orderId");
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            return ResponseUtil.badArgument();
+        }
+
+        // 如果订单不是关闭状态则不能删除
+        Short status = order.getStatus();
+        if (!status.equals(OrderConstant.STATUS_CANCEL) && !status.equals(OrderConstant.STATUS_REFUNDED) && !status.equals(OrderConstant.STATUS_FINISH)) {
+            return ResponseUtil.fail(AdminResponseCode.ORDER_DELETE_FAILED, "订单不能删除");
+        }
+        // 删除订单
+        orderMapper.deleteById(orderId);
+        // 删除订单商品
+        orderItemMapper.delete(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
+        return ResponseUtil.ok();
+    }
+}
