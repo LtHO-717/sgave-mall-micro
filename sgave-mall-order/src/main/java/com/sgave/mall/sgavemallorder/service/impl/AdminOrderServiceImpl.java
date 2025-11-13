@@ -5,12 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sgave.mall.constant.AdminResponseCode;
 import com.sgave.mall.sgavemallorder.constant.OrderConstant;
-import com.sgave.mall.sgavemallorder.dto.Order;
-import com.sgave.mall.sgavemallorder.dto.OrderItem;
-import com.sgave.mall.sgavemallorder.dto.RefundStockItemDTO;
-import com.sgave.mall.sgavemallorder.dto.RefundStockMessage;
+import com.sgave.mall.sgavemallorder.dto.*;
 import com.sgave.mall.sgavemallorder.mapper.OrderItemMapper;
 import com.sgave.mall.sgavemallorder.mapper.OrderMapper;
+import com.sgave.mall.sgavemallorder.remote.facade.GoodRemoteFacade;
 import com.sgave.mall.sgavemallorder.service.AdminOrderService;
 import com.sgave.mall.util.JacksonUtil;
 import com.sgave.mall.util.ResponseUtil;
@@ -23,7 +21,6 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author : zeping
@@ -40,9 +37,19 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     private OrderItemMapper orderItemMapper;
 
     @Resource
-    private RocketMQTemplate rocketMQTemplate;
+    private GoodRemoteFacade goodRemoteFacade;
+
+//    @Resource
+//    private RocketMQConfig rocketMQConfig;
 
     private static final String REFUND_STOCK_TOPIC = "refund-stock-topic";
+
+
+    private final RocketMQTemplate rocketMQTemplate;
+
+    public AdminOrderServiceImpl(RocketMQTemplate rocketMQTemplate) {
+        this.rocketMQTemplate = rocketMQTemplate;
+    }
 
 
     @Override
@@ -117,19 +124,14 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
         // 商品货品数量增加
         List<OrderItem> orderItems = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
-//        for (OrderItem orderItem : orderItems) {
-//            Long productId = orderItem.getProductId();
-//            Integer number = orderItem.getQuantity();
-//            TODO用Mq实现
-//            if (adminProductFacadeService.addStock(productId, number) == 0) {
-//                throw new RuntimeException("商品货品库存增加失败");
-//            }
-//        }
 
         List<RefundStockItemDTO> refundStockItemDTOS = orderItems.stream().map(orderItem -> {
+
             RefundStockItemDTO refundStockItemDTO = new RefundStockItemDTO();
             refundStockItemDTO.setProductId(orderItem.getProductId());
             refundStockItemDTO.setQuantity(orderItem.getQuantity());
+            Goods goods = goodRemoteFacade.selectById(Math.toIntExact(orderItem.getProductId()));
+            refundStockItemDTO.setGoodsSn(goods.getGoodsSn());
             return refundStockItemDTO;
         }).toList();
 

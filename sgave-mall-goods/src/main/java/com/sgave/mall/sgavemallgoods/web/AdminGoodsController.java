@@ -133,4 +133,12 @@ public class AdminGoodsController {
     Goods selectOne(@RequestParam("goodSn") String goodSn) {
         return goodsMapper.selectOne(new LambdaQueryWrapper<Goods>().eq(Goods::getGoodsSn, goodSn));
     }
+
+
+    @Hidden
+    @Operation(summary = "服务间调用接口，不对前端暴露")
+    @GetMapping("/selectById")
+    Goods selectById(@RequestParam("id") Integer id) {
+        return goodsMapper.selectById(id);
+    }
 }

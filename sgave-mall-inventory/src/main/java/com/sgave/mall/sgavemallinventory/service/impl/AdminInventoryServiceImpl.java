@@ -177,15 +177,15 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
         }
 
         // 新增库存
-        inventory = new Inventory();
-        inventory.setGoodsSn(inventory.getGoodsSn());
-        inventory.setTotalQuantity(inventory.getTotalQuantity());
-        inventory.setAvailableQuantity(inventory.getTotalQuantity());
-        inventory.setLockedQuantity(0);
-        inventory.setMinStock(inventory.getMinStock() != null ? inventory.getMinStock() : 0);
-        inventory.setCreateTime(new Date());
-        inventory.setUpdateTime(new Date());
-        inventoryMapper.insert(inventory);
+        Inventory inventoryInsert = new Inventory();
+        inventoryInsert.setGoodsSn(inventory.getGoodsSn());
+        inventoryInsert.setTotalQuantity(inventory.getTotalQuantity());
+        inventoryInsert.setAvailableQuantity(inventory.getTotalQuantity());
+        inventoryInsert.setLockedQuantity(0);
+        inventoryInsert.setMinStock(inventory.getMinStock() != null ? inventory.getMinStock() : 0);
+        inventoryInsert.setCreateTime(new Date());
+        inventoryInsert.setUpdateTime(new Date());
+        inventoryMapper.insert(inventoryInsert);
         // 调用商品服务查询商品
         Goods goods = goodRemoteFacade.selectOne(inventory.getGoodsSn());
 

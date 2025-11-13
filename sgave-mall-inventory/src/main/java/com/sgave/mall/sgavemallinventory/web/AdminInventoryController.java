@@ -105,7 +105,7 @@ public class AdminInventoryController {
 
 
     @Operation(summary = "分页查看日志")
-    @GetMapping("/list")
+    @GetMapping("/log/list")
     public Object getInventoryLogs(@RequestParam(name = "goodsSn", required = false) String goodsSn,
                                    @RequestParam(name = "orderNo", required = false) String orderNo,
                                    @RequestParam(name = "page", defaultValue = "1", required = false) Integer page,
@@ -118,7 +118,7 @@ public class AdminInventoryController {
 
 
     @Operation(summary = "分页查看锁定信息")
-    @GetMapping("/list")
+    @GetMapping("/lock/list")
     public Object getInventoryLocks(@RequestParam(name = "goodsSn", required = false) String goodsSn,
                                    @RequestParam(name = "orderNo", required = false) String orderNo,
                                    @RequestParam(name = "page", defaultValue = "1", required = false) Integer page,

@@ -16,6 +16,11 @@ spring:
       port: 6379
       database: 0
 
+rocketmq:
+  name-server: 192.168.1.140:9876
+  consumer:
+    group: refund-stock-consumer-group
+
 
 server:
-  port: 8082
+  port: 8002
