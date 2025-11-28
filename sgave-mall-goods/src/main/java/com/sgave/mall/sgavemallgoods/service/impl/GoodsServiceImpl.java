@@ -76,6 +76,7 @@ public class GoodsServiceImpl implements GoodsService {
         if (goodsId != null) {
             queryWrapper.eq(Goods::getId, goodsId);
         }
+        queryWrapper.orderByDesc(Goods::getCreateTime);
 
         return goodsMapper.selectPage(page, queryWrapper);
     }

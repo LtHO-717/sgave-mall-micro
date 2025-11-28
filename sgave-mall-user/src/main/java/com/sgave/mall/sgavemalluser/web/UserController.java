@@ -3,6 +3,7 @@ package com.sgave.mall.sgavemalluser.web;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.sgave.mall.sgavemalluser.dto.CustomerUser;
 import com.sgave.mall.sgavemalluser.service.AdminCustomerService;
+import com.sgave.mall.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -26,11 +27,12 @@ public class UserController {
 
     @Operation(summary = "分页查询用户")
     @GetMapping
-    public IPage<CustomerUser> selectByPage(
+    public Object selectByPage(
             @RequestParam(name = "username", required = false) String username,
-            @RequestParam(name = "status" ,required = false)Integer status,
-            @RequestParam(name = "page" ,defaultValue = "1") Integer page,
-            @RequestParam(name = "limit" ,defaultValue = "10") Integer limit){
-        return adminCustomerService.getUserList(username, status, page, limit);
+            @RequestParam(name = "status", required = false) Integer status,
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name = "limit", defaultValue = "10") Integer limit) {
+        IPage<CustomerUser> userIPage = adminCustomerService.getUserList(username, status, page, limit);
+        return ResponseUtil.okList(userIPage);
     }
 }
