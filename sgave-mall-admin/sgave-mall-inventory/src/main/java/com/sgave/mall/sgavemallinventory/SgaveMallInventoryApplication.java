@@ -1,0 +1,20 @@
+package com.sgave.mall.sgavemallinventory;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@EnableScheduling
+@SpringBootApplication
+@MapperScan("com.sgave.mall.sgavemallinventory.mapper")
+@EnableFeignClients(basePackages = "com.sgave.mall.sgavemallinventory.remote")
+public class SgaveMallInventoryApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SgaveMallInventoryApplication.class, args);
+    }
+
+}

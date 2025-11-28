@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sgave.mall.sgavemallinventory.mapper.InventoryMapper">
+    <update id="addStock" parameterType="map">
+        update inventory
+        set total_quantity = total_quantity + #{num,jdbcType=INTEGER}, update_time = now()
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="reduceStock" parameterType="map">
+        update inventory
+        set total_quantity = total_quantity - #{num,jdbcType=INTEGER}, update_time = now()
+        where id = #{id,jdbcType=BIGINT} and number >= #{num,jdbcType=INTEGER}
+    </update>
+</mapper>

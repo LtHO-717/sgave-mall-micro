@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: sgave-mall-goods
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mall?useUnicode=true&serverTimezone=GMT%2B8&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+server:
+  port: 9005
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
