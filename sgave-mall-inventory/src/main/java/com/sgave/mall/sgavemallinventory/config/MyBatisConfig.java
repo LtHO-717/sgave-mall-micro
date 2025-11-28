@@ -1,4 +1,4 @@
-package com.sgave.mall.config;
+package com.sgave.mall.sgavemallinventory.config;
 
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;

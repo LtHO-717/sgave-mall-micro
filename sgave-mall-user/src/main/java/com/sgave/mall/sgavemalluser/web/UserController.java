@@ -27,10 +27,10 @@ public class UserController {
     @Operation(summary = "分页查询用户")
     @GetMapping
     public IPage<CustomerUser> selectByPage(
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false)Integer status,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer limit){
+            @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "status" ,required = false)Integer status,
+            @RequestParam(name = "page" ,defaultValue = "1") Integer page,
+            @RequestParam(name = "limit" ,defaultValue = "10") Integer limit){
         return adminCustomerService.getUserList(username, status, page, limit);
     }
 }

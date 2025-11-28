@@ -1,9 +1,11 @@
 package com.sgave.mall.sgavemallinventory.web;
 
-import com.sgave.mall.sgavemallinventory.dto.Inventory;
-import com.sgave.mall.sgavemallinventory.dto.InventoryLock;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sgave.mall.sgavemallinventory.dto.CountDTO;
+import com.sgave.mall.sgavemallinventory.pojo.Inventory;
+import com.sgave.mall.sgavemallinventory.pojo.InventoryLock;
 import com.sgave.mall.sgavemallinventory.dto.InventoryLockDTO;
-import com.sgave.mall.sgavemallinventory.dto.InventoryLog;
+import com.sgave.mall.sgavemallinventory.pojo.InventoryLog;
 import com.sgave.mall.sgavemallinventory.service.AdminInventoryService;
 import com.sgave.mall.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,10 +31,12 @@ public class AdminInventoryController {
     @GetMapping("/list")
     public Object inventoryList(@RequestParam(name = "page", defaultValue = "1", required = false) Integer page,
                                 @RequestParam(name = "limit", defaultValue = "10", required = false) Integer limit,
+                                @RequestParam(name = "name", required = false) String name,
+                                @RequestParam(name = "minStatus", required = false) Byte minStatus,
                                 @RequestParam(name = "create_time", required = false, defaultValue = "create_time") String sortField,
                                 @RequestParam(name = "desc", required = false, defaultValue = "desc") String sortOrder) {
-        List<Inventory> inventoryList = adminInventoryService.getInventoryList(page, limit, sortField, sortOrder);
-        return ResponseUtil.ok(inventoryList);
+        IPage<Inventory> inventoryIPage = adminInventoryService.getInventoryList(page, limit, name, minStatus, sortField, sortOrder);
+        return ResponseUtil.okList(inventoryIPage);
     }
 
 
@@ -41,6 +45,13 @@ public class AdminInventoryController {
     public Object inventoryDetail(@Parameter(name = "id", description = "库存id") @RequestParam(name = "id") Integer id) {
         Inventory inventory = adminInventoryService.inventoryDetail(id);
         return ResponseUtil.ok(inventory);
+    }
+
+    @Operation(summary = "计算商品数")
+    @GetMapping("/count")
+    public Object count() {
+        CountDTO countDTO = adminInventoryService.count();
+        return ResponseUtil.ok(countDTO);
     }
 
 
@@ -87,7 +98,7 @@ public class AdminInventoryController {
         if (result) {
             return ResponseUtil.ok();
         } else {
-            return ResponseUtil.fail(505, "新增库存失败");
+            return ResponseUtil.fail(505, "库存已经存在");
         }
     }
 
@@ -112,21 +123,16 @@ public class AdminInventoryController {
                                    @RequestParam(name = "limit", defaultValue = "10", required = false) Integer limit,
                                    @RequestParam(name = "create_time", required = false, defaultValue = "create_time") String sortField,
                                    @RequestParam(name = "desc", required = false, defaultValue = "desc") String sortOrder) {
-        List<InventoryLog> inventoryLogList = adminInventoryService.getInventoryLogs(goodsSn, orderNo, page, limit, sortField, sortOrder);
-        return ResponseUtil.ok(inventoryLogList);
+        IPage<InventoryLog> inventoryLogIPage = adminInventoryService.getInventoryLogs(goodsSn, orderNo, page, limit, sortField, sortOrder);
+        return ResponseUtil.okList(inventoryLogIPage);
     }
 
 
     @Operation(summary = "分页查看锁定信息")
     @GetMapping("/lock/list")
-    public Object getInventoryLocks(@RequestParam(name = "goodsSn", required = false) String goodsSn,
-                                   @RequestParam(name = "orderNo", required = false) String orderNo,
-                                   @RequestParam(name = "page", defaultValue = "1", required = false) Integer page,
-                                   @RequestParam(name = "limit", defaultValue = "10", required = false) Integer limit,
-                                   @RequestParam(name = "create_time", required = false, defaultValue = "create_time") String sortField,
-                                   @RequestParam(name = "desc", required = false, defaultValue = "desc") String sortOrder) {
+    public Object getInventoryLocks(@RequestParam(name = "goodsSn", required = false) String goodsSn, @RequestParam(name = "orderNo", required = false) String orderNo, @RequestParam(name = "page", defaultValue = "1", required = false) Integer page, @RequestParam(name = "limit", defaultValue = "10", required = false) Integer limit, @RequestParam(name = "create_time", required = false, defaultValue = "create_time") String sortField, @RequestParam(name = "desc", required = false, defaultValue = "desc") String sortOrder) {
         List<InventoryLock> inventoryLogList = adminInventoryService.getInventoryLocks(goodsSn, orderNo, page, limit, sortField, sortOrder);
-        return ResponseUtil.ok(inventoryLogList);
+        return ResponseUtil.okList(inventoryLogList);
     }
 
 }

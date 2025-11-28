@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemallinventory.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.sgave.mall.sgavemallinventory.dto.Inventory;
+import com.sgave.mall.sgavemallinventory.pojo.Inventory;
 import org.apache.ibatis.annotations.Param;
 
 /**

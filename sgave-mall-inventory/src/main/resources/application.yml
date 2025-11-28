@@ -16,11 +16,13 @@ spring:
       port: 6379
       database: 0
 
-rocketmq:
-  name-server: 192.168.1.140:9876
-  consumer:
-    group: refund-stock-consumer-group
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 
 
 server:
-  port: 8002
+  port: 9001

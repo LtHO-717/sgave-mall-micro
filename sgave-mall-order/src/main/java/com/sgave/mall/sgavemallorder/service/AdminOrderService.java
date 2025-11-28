@@ -1,5 +1,8 @@
 package com.sgave.mall.sgavemallorder.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sgave.mall.sgavemallorder.dto.Order;
+import com.sgave.mall.sgavemallorder.dto.OrderDTO;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
@@ -13,11 +16,11 @@ import java.util.List;
 public interface AdminOrderService {
     Object ship(String orderId);
 
-    Object list(Integer userId, String orderSn, LocalDateTime start, LocalDateTime end, List<Short> orderStatusArray, Integer page, Integer limit, String sort, String order);
+    IPage<Order> list(Integer userId, String orderSn, LocalDateTime start, LocalDateTime end, List<Short> orderStatusArray, Integer page, Integer limit, String sort, String order);
 
     Object detail(@NotNull Integer id);
 
-    Object refund(String body);
+    Object refund(OrderDTO orderDTO);
 
-    Object delete(String body);
+    Object delete(String orderId);
 }

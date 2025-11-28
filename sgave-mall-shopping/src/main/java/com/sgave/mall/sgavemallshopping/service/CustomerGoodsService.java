@@ -1,0 +1,16 @@
+package com.sgave.mall.sgavemallshopping.service;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sgave.mall.sgavemallshopping.pojo.Goods;
+
+/**
+ * @author : LtHO
+ * @description :
+ * @createDate : 2025/5/21
+ */
+public interface CustomerGoodsService {
+    IPage<Goods> getGoodsList(Integer goodsId, String goodsSn, String name, Integer current, Integer size);
+    Goods getGoodsDetail(Integer goodsId);
+    Goods getGoods(Integer goodsId);
+
+}

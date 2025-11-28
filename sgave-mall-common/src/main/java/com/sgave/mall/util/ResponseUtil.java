@@ -1,5 +1,6 @@
 package com.sgave.mall.util;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.pagehelper.Page;
 
 import java.util.HashMap;
@@ -71,6 +72,17 @@ public class ResponseUtil {
 
         return ok(data);
     }
+
+    public static Object okList(IPage page) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("list", page.getRecords());
+        data.put("total", page.getTotal());
+        data.put("page", page.getCurrent());
+        data.put("limit", page.getSize());
+        data.put("pages", page.getPages());
+        return ok(data);
+    }
+
 
     public static Object okList(List list, List pagedList) {
         Map<String, Object> data = new HashMap<String, Object>();

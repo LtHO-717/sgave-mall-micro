@@ -2,7 +2,7 @@ package com.sgave.mall.sgavemalluser.web;
 
 import com.sgave.mall.sgavemalluser.dto.AdminUser;
 import com.sgave.mall.sgavemalluser.service.AdminService;
-import com.sgave.mall.util.JwtUtil;
+import com.sgave.mall.util.AdminJwtUtil;
 import com.sgave.mall.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +39,7 @@ public class AdminController {
             return ResponseUtil.fail(700, "管理员登录失败，用户名或密码错误");
         }
 
-        String token = JwtUtil.createToken(loginUser.getId());
+        String token = AdminJwtUtil.createToken(loginUser.getId());
         return ResponseUtil.ok(Map.of(
                 "token", token,
                 "userInfo", loginUser

@@ -1,9 +1,11 @@
 package com.sgave.mall.sgavemallinventory.service;
 
-import com.sgave.mall.sgavemallinventory.dto.Inventory;
-import com.sgave.mall.sgavemallinventory.dto.InventoryLock;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sgave.mall.sgavemallinventory.dto.CountDTO;
+import com.sgave.mall.sgavemallinventory.pojo.Inventory;
+import com.sgave.mall.sgavemallinventory.pojo.InventoryLock;
 import com.sgave.mall.sgavemallinventory.dto.InventoryLockDTO;
-import com.sgave.mall.sgavemallinventory.dto.InventoryLog;
+import com.sgave.mall.sgavemallinventory.pojo.InventoryLog;
 
 import java.util.List;
 
@@ -14,7 +16,7 @@ import java.util.List;
  */
 public interface AdminInventoryService {
 
-    List<Inventory> getInventoryList(Integer page, Integer limit, String sortField, String sortOrder);
+    IPage<Inventory> getInventoryList(Integer page, Integer limit, String name, Byte minStatus, String sortField, String sortOrder);
 
     Inventory inventoryDetail(Integer id);
 
@@ -28,7 +30,9 @@ public interface AdminInventoryService {
 
     Boolean replenishInventory(String goodsSn, Integer quantity);
 
-    List<InventoryLog> getInventoryLogs(String goodsSn, String orderNo, Integer page, Integer limit, String sortField, String sortOrder);
+    IPage<InventoryLog> getInventoryLogs(String goodsSn, String orderNo, Integer page, Integer limit, String sortField, String sortOrder);
 
     List<InventoryLock> getInventoryLocks(String goodsSn, String orderNo, Integer page, Integer limit, String sortField, String sortOrder);
+
+    CountDTO count();
 }

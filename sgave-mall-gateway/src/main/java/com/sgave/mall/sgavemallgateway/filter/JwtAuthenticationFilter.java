@@ -3,8 +3,9 @@ package com.sgave.mall.sgavemallgateway.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sgave.mall.sgavemallgateway.config.JwtProperties;
-import com.sgave.mall.util.JwtUtil;
+import com.sgave.mall.util.AdminJwtUtil;
 import com.sgave.mall.util.ResponseUtil;
+import com.sgave.mall.util.WebJwtUtil;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -22,12 +23,28 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
-    private static final String AUTHORIZATION_HEADER = "SGAVE-Mall-Token";
+    private static final String ADMIN_TOKEN_HEADER = "SGAVE-Mall-Admin-Token";
+    private static final String USER_TOKEN_HEADER = "SGAVE-Mall-Token";
 
+    // ⭐ 新增：前台接口路径前缀
+    private static final String[] USER_PATH_PREFIX = {
+            "/customer/**",
+            "/cart/**",
+            "/address/**",
+            "/web/**",
+            "/collect/**",
+            "/order/**",
+            "/footprint/**"
+    };
 
-
-    @Resource
-    private JwtUtil jwtUtil;
+    // ⭐ 新增：后台接口路径前缀
+    private static final String[] ADMIN_PATH_PREFIX = {
+            "/admin/**",
+            "/goods/**",
+            "/inventory/**",
+            "/admin-order/**",
+            "/user/**"
+    };
 
     @Autowired
     private JwtProperties jwtProperties;
@@ -35,18 +52,25 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
         // 检查当前请求是否在白名单中，如果是，则直接放行
         String path = exchange.getRequest().getURI().getPath();
-
 
         if (isWhiteListed(path)) {
             return chain.filter(exchange);
         }
         String token = getTokenFromRequest(exchange);
 
-        if (token != null && jwtUtil.verifyTokenAndGetUserId(token) != 0) {
+        boolean valid;
+        if (isUserPath(path)) {
+            // 前台 Web 接口 → 用 WebJwtUtil
+            valid = (token != null && WebJwtUtil.verifyTokenAndGetUserId(token) != 0);
+        } else {
+            // 后台 Admin 接口 → 用 AdminJwtUtil
+            valid = (token != null && AdminJwtUtil.verifyTokenAndGetUserId(token) != 0);
+        }
+        if (valid) {
             // 如果 JWT 校验通过，继续执行后续的请求处理
+            return chain.filter(exchange);
         } else {
             return Mono.defer(() -> {
                 // 调用 ResponseUtil 的 unlogin 方法
@@ -54,8 +78,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 return buildErrorResponse(exchange, response);  // 返回响应
             });
         }
-
-        return chain.filter(exchange);
     }
 
     // 构建错误响应的处理方法
@@ -76,6 +98,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     /**
      * 检查当前请求是否在白名单中
+     *
      * @param path
      * @return
      */
@@ -91,14 +114,42 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
 
+    // ⭐ 判断是否是前台 Web 接口
+    private boolean isUserPath(String path) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        for (String pattern : USER_PATH_PREFIX) {
+            if (matcher.match(pattern, path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     /**
      * 从请求中获取 JWT 令牌
+     *
      * @param exchange
      * @return
      */
     private String getTokenFromRequest(ServerWebExchange exchange) {
-        String authorizationHeader = exchange.getRequest().getHeaders().getFirst(AUTHORIZATION_HEADER);
-        return authorizationHeader;
+        String path = exchange.getRequest().getURI().getPath();
+        AntPathMatcher matcher = new AntPathMatcher();
+
+        // 前台接口 → 使用用户 Token
+        for (String pattern : USER_PATH_PREFIX) {
+            if (matcher.match(pattern, path)) {
+                return exchange.getRequest().getHeaders().getFirst(USER_TOKEN_HEADER);
+            }
+        }
+        // 后台接口 → 使用管理员 Token
+        for (String pattern : ADMIN_PATH_PREFIX) {
+            if (matcher.match(pattern, path)) {
+                return exchange.getRequest().getHeaders().getFirst(ADMIN_TOKEN_HEADER);
+            }
+        }
+        // ⭐ 默认：当路径既不是前台也不是后台 → 默认使用后台 Token
+        return exchange.getRequest().getHeaders().getFirst(ADMIN_TOKEN_HEADER);
     }
 
     @Override

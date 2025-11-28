@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemallinventory.dto;
+package com.sgave.mall.sgavemallinventory.pojo;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;

@@ -13,7 +13,6 @@ import com.sgave.mall.sgavemallorder.service.AdminOrderService;
 import com.sgave.mall.util.JacksonUtil;
 import com.sgave.mall.util.ResponseUtil;
 import jakarta.annotation.Resource;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -45,15 +44,15 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     private static final String REFUND_STOCK_TOPIC = "refund-stock-topic";
 
 
-    private final RocketMQTemplate rocketMQTemplate;
-
-    public AdminOrderServiceImpl(RocketMQTemplate rocketMQTemplate) {
-        this.rocketMQTemplate = rocketMQTemplate;
-    }
+//    private final RocketMQTemplate rocketMQTemplate;
+//
+//    public AdminOrderServiceImpl(RocketMQTemplate rocketMQTemplate) {
+//        this.rocketMQTemplate = rocketMQTemplate;
+//    }
 
 
     @Override
-    public Object list(Integer userId, String orderSn, LocalDateTime start, LocalDateTime end, List<Short> orderStatusArray, Integer page, Integer limit, String sort, String order) {
+    public IPage<Order> list(Integer userId, String orderSn, LocalDateTime start, LocalDateTime end, List<Short> orderStatusArray, Integer page, Integer limit, String sort, String order) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
 
         // 构造查询条件
@@ -71,9 +70,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
         // 分页
         Page<Order> pageInfo = new Page<>(page, limit);
-        IPage<Order> resultPage = orderMapper.selectPage(pageInfo, wrapper);
-
-        return resultPage.getRecords();
+        return orderMapper.selectPage(pageInfo, wrapper);
     }
 
     @Override
@@ -92,9 +89,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
     @Override
     @Transactional
-    public Object refund(String body) {
-        Integer orderId = JacksonUtil.parseInteger(body, "orderId");
-        String refundMoney = JacksonUtil.parseString(body, "refundMoney");
+    public Object refund(OrderDTO orderDTO) {
+        Integer orderId = orderDTO.getOrderId();
+        String refundMoney = orderDTO.getRefundMoney();
         if (orderId == null) {
             return ResponseUtil.badArgument();
         }
@@ -140,11 +137,11 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         message.setOrderId(orderId);
         message.setItems(refundStockItemDTOS);
 
-        try {
-            rocketMQTemplate.convertAndSend(REFUND_STOCK_TOPIC, message);
-        } catch (Exception e) {
-            throw new RuntimeException("发送库存回补消息失败", e);
-        }
+//        try {
+//            rocketMQTemplate.convertAndSend(REFUND_STOCK_TOPIC, message);
+//        } catch (Exception e) {
+//            throw new RuntimeException("发送库存回补消息失败", e);
+//        }
 
         return ResponseUtil.ok();
     }
@@ -178,8 +175,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
 
     @Override
-    public Object delete(String body) {
-        Integer orderId = JacksonUtil.parseInteger(body, "orderId");
+    public Object delete(String orderId) {
         Order order = orderMapper.selectById(orderId);
         if (order == null) {
             return ResponseUtil.badArgument();

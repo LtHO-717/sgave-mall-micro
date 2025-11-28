@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemallinventory.dto;
+package com.sgave.mall.sgavemallinventory.pojo;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.sgave.mall.dto.BaseBean;
@@ -21,11 +21,14 @@ public class Inventory extends BaseBean implements Serializable {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
+    private String name;
     private String goodsSn;
     private Integer totalQuantity;
     private Integer availableQuantity;
     private Integer lockedQuantity;
     private Integer minStock;
+    private Byte lockStatus;
+    private Byte minStatus;
     private LocalDateTime lastCheckTime;
     private Integer isDeleted;
 }

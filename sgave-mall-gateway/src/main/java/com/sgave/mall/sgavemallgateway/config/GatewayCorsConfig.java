@@ -19,7 +19,8 @@ public class GatewayCorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        corsProperties.getAllowedOrigins().forEach(config::addAllowedOrigin);
+//        corsProperties.getAllowedOrigins().forEach(config::addAllowedOrigin);
+        config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);

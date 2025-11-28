@@ -23,7 +23,7 @@ import java.util.List;
  */
 @RestController
 @Tag(name = "商品管理")
-@RequestMapping("/goods")
+@RequestMapping("/admin/goods")
 public class AdminGoodsController {
     @Resource
     private GoodsMapper goodsMapper;
@@ -31,15 +31,15 @@ public class AdminGoodsController {
     private GoodsService goodsService;
 
     @Operation(summary = "查询")
-    @GetMapping("/{id}")
-    public ResponseEntity<Goods> getGoods(@PathVariable("id") Integer id) {
+    @GetMapping("/query/{id}")
+    public Object getGoods(@PathVariable("id") Integer id) {
         Goods goods = goodsMapper.selectById(id);
-        return ResponseEntity.ok(goods);
+        return ResponseUtil.ok(goods);
     }
 
     @Operation(summary = "新增商品")
-    @PostMapping
-    public ResponseEntity<Object> addGoods(@RequestBody Goods goods) {
+    @PostMapping("/add")
+    public Object addGoods(@RequestBody Goods goods) {
         if (goods != null) {
             try {
                 goodsService.saveGoods(goods);
@@ -50,27 +50,27 @@ public class AdminGoodsController {
             return ResponseEntity.badRequest().body("null");
         }
         System.out.println(goods);
-        return ResponseEntity.ok(goods);
+        return ResponseUtil.ok(goods);
     }
 
     @Operation(summary = "分页查询")
-    @GetMapping
-    public IPage<Goods> selectByPage(
-            @RequestParam(required = false) Integer goodsId,
-            @RequestParam(required = false) String goodsSn,
-            @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "2") Integer limit) {
+    @GetMapping("queryPage")
+    public Object selectByPage(
+            @RequestParam(name = "goodsId",required = false) Integer goodsId,
+            @RequestParam(name = "goodsSn",required = false) String goodsSn,
+            @RequestParam(name = "name",required = false) String name,
+            @RequestParam(name = "page",defaultValue = "1") Integer page,
+            @RequestParam(name = "limit",defaultValue = "2") Integer limit) {
         IPage<Goods> goodsIPage = goodsService.getGoodsList(goodsId, goodsSn, name, page, limit);
         System.out.println("数据总数:" + goodsIPage.getTotal());
         System.out.println("总页数:" + goodsIPage.getPages());
         System.out.println("当前页:" + goodsIPage.getCurrent());
         System.out.println("页大小:" + goodsIPage.getSize());
-        return goodsIPage;
+        return ResponseUtil.okList(goodsIPage);
     }
 
     @Operation(summary = "更新商品")
-    @PutMapping
+    @PutMapping("/update")
     public Object updateGoods(@RequestBody Goods goods) {
         int result = goodsService.updateGoods(goods);
         if (result > 0) {
@@ -81,7 +81,7 @@ public class AdminGoodsController {
     }
 
     @Operation(summary = "删除")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public Object delGoods(@PathVariable("id") Integer id) {
         int result = goodsMapper.deleteById(id);
         if (result > 0) {
@@ -92,9 +92,9 @@ public class AdminGoodsController {
     }
 
     @Operation(summary = "上架/下架商品")
-    @PutMapping("/{id}")
+    @PutMapping("/add/{id}")
     public Object updateGoodsShelf(
-            @PathVariable("id") Integer id, Integer status) {
+            @PathVariable("id") Integer id, @RequestParam(name = "status") Integer status) {
         int result = goodsService.updateGoodsShelf(id, status);
         if (result > 0) {
             if (status == 1) {
@@ -111,7 +111,7 @@ public class AdminGoodsController {
 
     @Operation(summary = "图片上传")
     @PostMapping("pic")
-    public Object uploadPic(MultipartFile file) {
+    public Object uploadPic(@RequestParam("file") MultipartFile file) {
         if (file != null) {
             return ResponseUtil.ok(goodsService.uploadPic(file));
         }

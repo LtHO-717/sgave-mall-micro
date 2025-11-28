@@ -11,4 +11,10 @@ spring:
     username: root
     password: 123456
 server:
-  port: 8081
+  port: 9005
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

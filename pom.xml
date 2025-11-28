@@ -26,6 +26,7 @@
         <module>sgave-mall-order</module>
         <module>sgave-mall-common</module>
         <module>sgave-mall-user</module>
+        <module>sgave-mall-shopping</module>
     </modules>
 
 

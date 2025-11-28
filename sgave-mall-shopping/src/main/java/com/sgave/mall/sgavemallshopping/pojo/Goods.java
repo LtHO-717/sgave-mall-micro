@@ -1,17 +1,16 @@
-package com.sgave.mall.sgavemallinventory.dto;
+package com.sgave.mall.sgavemallshopping.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.sgave.mall.dto.BaseBean;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 /**
- * @author : zeping
+ * @author : yajun
  * @description :
- * @createDate : 2025/11/7
+ * @createDate : 2025/1/4
  */
 @Data
 @TableName("sgave_goods") // 映射数据库表

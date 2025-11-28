@@ -1,6 +1,10 @@
 package com.sgave.mall.sgavemallorder.web;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sgave.mall.sgavemallorder.dto.Order;
+import com.sgave.mall.sgavemallorder.dto.OrderDTO;
 import com.sgave.mall.sgavemallorder.service.AdminOrderService;
+import com.sgave.mall.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -18,7 +22,7 @@ import java.util.List;
  */
 @RestController
 @Tag(name = "订单管理")
-@RequestMapping("/order")
+@RequestMapping("/admin-order")
 public class AdminOrderController {
 
     @Resource
@@ -28,30 +32,31 @@ public class AdminOrderController {
     @Operation(summary = "查询订单列表接口")
     @GetMapping("/list")
     public Object list(
-            @RequestParam(value = "userId", required = false) Integer userId,
-            @RequestParam(value = "orderSn", required = false) String orderSn,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
-            @RequestParam(required = false) List<Short> orderStatusArray,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer limit,
-            @RequestParam(defaultValue = "create_time") String sort,
-            @RequestParam(defaultValue = "desc") String order) {
-        return adminOrderService.list(userId, orderSn, start, end, orderStatusArray, page, limit, sort, order);
+            @RequestParam(name = "userId", required = false) Integer userId,
+            @RequestParam(name = "orderSn", required = false) String orderSn,
+            @RequestParam(name = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+            @RequestParam(name = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
+            @RequestParam(name = "orderStatusArray", required = false) List<Short> orderStatusArray,
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name = "limit", defaultValue = "10") Integer limit,
+            @RequestParam(name = "sort", defaultValue = "create_time") String sort,
+            @RequestParam(name = "order", defaultValue = "desc") String order) {
+        IPage<Order> orderIPage = adminOrderService.list(userId, orderSn, start, end, orderStatusArray, page, limit, sort, order);
+        return ResponseUtil.okList(orderIPage);
     }
 
 
     @Operation(summary = "查询订单详情接口")
     @GetMapping("/detail")
-    public Object detail(@RequestParam("id") @NotNull Integer id) {
-        return adminOrderService.detail(id);
+    public Object detail(@RequestParam("orderId") Integer orderId) {
+        return adminOrderService.detail(orderId);
     }
 
 
     @Operation(summary = "订单退款接口")
     @PostMapping("/refund")
-    public Object refund(@RequestBody String body) {
-        return adminOrderService.refund(body);
+    public Object refund(@RequestBody OrderDTO orderDTO) {
+        return adminOrderService.refund(orderDTO);
     }
 
 
@@ -63,8 +68,8 @@ public class AdminOrderController {
 
 
     @Operation(summary = "删除订单接口")
-    @PostMapping("/delete")
-    public Object delete(@RequestBody String body) {
-        return adminOrderService.delete(body);
+    @DeleteMapping("/delete")
+    public Object delete(@RequestParam("orderId") String orderId) {
+        return adminOrderService.delete(orderId);
     }
 }

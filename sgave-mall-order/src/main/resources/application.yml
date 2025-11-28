@@ -11,10 +11,12 @@ spring:
     username: root
     password: 123456
 
-rocketmq:
-  name-server: 192.168.1.140:9876
-  producer:
-    group: refund-producer-group
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 
 server:
-  port: 8083
+  port: 9002

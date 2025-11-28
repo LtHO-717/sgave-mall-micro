@@ -19,9 +19,10 @@ import java.util.List;
  * @createDate : 2025/11/7
  */
 @RestController
-@RequestMapping("/collect")
+@RequestMapping("/admin/collect")
 @Tag(name = "用户收藏")
 public class AdminCollectController {
+
     @Resource
     private AdminCollectService collectService;
 
@@ -31,4 +32,5 @@ public class AdminCollectController {
         List<Goods> footGoods = collectService.getCollectsByUserAndGoods(userId,goodsId);
         return ResponseUtil.ok(footGoods);
     }
+
 }

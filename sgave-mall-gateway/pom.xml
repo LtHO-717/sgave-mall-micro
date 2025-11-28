@@ -55,6 +55,13 @@
             <artifactId>sgave-mall-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-gateway-spring-boot-starter</artifactId>
+            <version>4.4.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

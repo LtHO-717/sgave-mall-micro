@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-public class JwtUtil {
+public class WebJwtUtil {
 
     // 秘钥
     static final String SECRET = "SGAVE-Mall-Token";
@@ -26,7 +26,7 @@ public class JwtUtil {
     // 签名的观众
     static final String AUDIENCE = "MINIAPP";
 
-    public static String createToken(Integer userId) {
+    public static String createToken(Integer userId,String userName) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET);
             Map<String, Object> map = new HashMap<String, Object>();
@@ -41,7 +41,7 @@ public class JwtUtil {
                     // 设置 载荷 Payload
                     .withClaim("userId", userId)
                     .withIssuer(ISSUSER)
-                    .withSubject(SUBJECT)
+                    .withSubject(userName)
                     .withAudience(AUDIENCE)
                     // 生成签名的时间
                     .withIssuedAt(nowDate)
@@ -56,7 +56,7 @@ public class JwtUtil {
         return null;
     }
 
-    public Integer verifyTokenAndGetUserId(String token) {
+    public static Integer verifyTokenAndGetUserId(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET);
             JWTVerifier verifier = JWT.require(algorithm)
