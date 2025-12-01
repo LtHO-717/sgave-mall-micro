@@ -7,47 +7,6 @@ spring:
         server-addr: localhost:8848
     gateway:
       routes:
-#        - id: order
-#          uri: lb://sgave-mall-order
-#          predicates:
-#            - Path=/order/**
-#          filters:
-#            - StripPrefix=1
-#
-#        - id: goods
-#          uri: lb://sgave-mall-goods
-#          predicates:
-#            - Path=/goods/**
-#          filters:
-#            - StripPrefix=1       # 因为 Swagger 访问 /goods/v3/api-docs
-#
-#        - id: inventory
-#          uri: lb://sgave-mall-inventory
-#          predicates:
-#            - Path=/inventory/**
-#          filters:
-#            - StripPrefix=1
-#
-#        - id: user
-#          uri: lb://sgave-mall-user
-#          predicates:
-#            - Path=/user/**
-#          filters:
-#            - StripPrefix=1
-#
-#        - id: admin
-#          uri: lb://sgave-mall-user
-#          predicates:
-#            - Path=/admin/**
-#               # 如果后端真实路径没有 /admin 前缀，则保留
-#               # 如果后端有 /admin，则把这一行删掉！
-#
-#        - id: shopping
-#          uri: lb://sgave-mall-shopping
-#          predicates:
-#            - Path=/customer/**,/address/**,/cart/**,/web/**,/collect/**
-#          filters:
-#            - StripPrefix=1
         ##################################################
         # 商品服务 (sgave-mall-goods)
         ##################################################
@@ -63,8 +22,7 @@ spring:
         - id: goods
           uri: lb://sgave-mall-goods
           predicates:
-            - Path=/admin/goods/**
-
+            - Path=/admin/goods/**,/excel/**
 
         ##################################################
         # 库存服务 (sgave-mall-inventory)
@@ -83,7 +41,6 @@ spring:
           predicates:
             - Path=/inventory/**
 
-
         ##################################################
         # 订单服务 (sgave-mall-order)
         ##################################################
@@ -100,7 +57,6 @@ spring:
           uri: lb://sgave-mall-order
           predicates:
             - Path=/admin-order/**
-
 
         ##################################################
         # 用户服务 (sgave-mall-user)
@@ -156,13 +112,6 @@ spring:
             - Path=/customer/**,/address/**,/cart/**,/web/**,/collect/**,/order/**,/footprint/**
 
 
-
-
-
-
-
-
-
 jwt:
   white-list:
     - /admin/admin
@@ -180,6 +129,7 @@ gateway:
       - http://192.168.1.140:3000
       - http://192.168.1.25:9010
       - http://192.168.1.26:9011
+
 knife4j:
   gateway:
     enabled: true

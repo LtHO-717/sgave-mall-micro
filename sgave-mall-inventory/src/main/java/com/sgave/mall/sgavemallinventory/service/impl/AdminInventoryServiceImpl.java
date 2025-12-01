@@ -2,17 +2,14 @@ package com.sgave.mall.sgavemallinventory.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sgave.mall.sgavemallinventory.constant.InventoryChangeType;
 import com.sgave.mall.sgavemallinventory.dto.*;
-import com.sgave.mall.sgavemallinventory.mapper.InventoryLockMapper;
 import com.sgave.mall.sgavemallinventory.mapper.InventoryLogMapper;
 import com.sgave.mall.sgavemallinventory.mapper.InventoryMapper;
 import com.sgave.mall.sgavemallinventory.pojo.Goods;
 import com.sgave.mall.sgavemallinventory.pojo.Inventory;
-import com.sgave.mall.sgavemallinventory.pojo.InventoryLock;
 import com.sgave.mall.sgavemallinventory.pojo.InventoryLog;
 import com.sgave.mall.sgavemallinventory.remote.facade.GoodRemoteFacade;
 import com.sgave.mall.sgavemallinventory.service.AdminInventoryService;
@@ -36,9 +33,6 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
 
     @Resource
     private InventoryMapper inventoryMapper;
-
-    @Resource
-    private InventoryLockMapper inventoryLockMapper;
 
     @Resource
     private InventoryLogMapper inventoryLogMapper;
@@ -77,15 +71,8 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
 
 
     @Override
-    public Inventory inventoryDetail(Integer id) {
-        return inventoryMapper.selectById(id);
-    }
-
-
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean lockBatch(List<InventoryLockDTO> inventoryLockDTOList) {
-        ArrayList<InventoryLock> inventoryLockList = new ArrayList<>();
         ArrayList<Inventory> inventoryList = new ArrayList<>();
         ArrayList<InventoryLog> inventoryLogList = new ArrayList<>();
         for (InventoryLockDTO req : inventoryLockDTOList) {
@@ -103,26 +90,16 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             inventory.setLockedQuantity(inventory.getLockedQuantity() + req.getQuantity());
             inventoryList.add(inventory);
 
-            // 插入锁定记录
-            InventoryLock lock = new InventoryLock();
-            lock.setGoodsSn(req.getGoodsSn());
-            lock.setOrderNo(req.getOrderNo());
-            lock.setQuantity(req.getQuantity());
-            lock.setExpireTime(LocalDateTime.now().plusHours(2)); // 默认2小时过期
-            lock.setStatus(1); // 锁定中
-            inventoryLockList.add(lock);
-
             // 写日志
             InventoryLog log = new InventoryLog();
             log.setGoodsSn(inventory.getGoodsSn());
             log.setGoodsName(inventory.getName());
             log.setChangeType(InventoryChangeType.LOCK);
-            log.setQuantity(inventory.getTotalQuantity());
+            log.setQuantity(req.getQuantity());
             log.setCreateTime(LocalDateTime.now());
             inventoryLogList.add(log);
         }
         inventoryMapper.updateById(inventoryList);
-        inventoryLockMapper.insert(inventoryLockList);
         inventoryLogMapper.insert(inventoryLogList);
         return true;
     }
@@ -134,39 +111,27 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
         ArrayList<Inventory> inventoryList = new ArrayList<>();
         ArrayList<InventoryLog> inventoryLogList = new ArrayList<>();
         for (InventoryLockDTO req : inventoryLockDTOList) {
-            // 查询锁定记录
-            InventoryLock lock = inventoryLockMapper.selectOne(
-                    new LambdaQueryWrapper<InventoryLock>()
-                            .eq(req.getOrderNo() != null && !req.getOrderNo().isEmpty(), InventoryLock::getOrderNo, req.getOrderNo())
-                            .eq(req.getGoodsSn() != null && !req.getGoodsSn().isEmpty(), InventoryLock::getGoodsSn, req.getGoodsSn())
-                            .eq(InventoryLock::getStatus, 1)  // 只查锁定中
-                            .last("LIMIT 1")
-            );
-            if (lock == null || lock.getStatus() != 1) {
-                continue; // 无锁定记录或已解锁/扣减的跳过
-            }
-
             // 查询库存
             Inventory inventory = inventoryMapper.selectOne(new QueryWrapper<Inventory>().eq("goods_sn", req.getGoodsSn()));
-            if (inventory == null) continue;
-            // 更新库存数量
-            inventory.setAvailableQuantity(inventory.getAvailableQuantity() + lock.getQuantity());
-            inventory.setLockedQuantity(inventory.getLockedQuantity() - lock.getQuantity());
-            inventoryList.add(inventory);
 
-            // 更新锁定记录状态
-            LambdaUpdateWrapper<InventoryLock> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(InventoryLock::getId, lock.getId())
-                    .set(InventoryLock::getStatus, 2)
-                    .set(InventoryLock::getUpdateTime, LocalDateTime.now());
-            inventoryLockMapper.update(null, updateWrapper);
+            if (inventory == null || inventory.getLockedQuantity() == null) continue;
+            // 更新库存数量
+            int locked = inventory.getLockedQuantity();
+            int reqQty = req.getQuantity();
+
+            // 实际可操作的数量（不能超过 locked）
+            int realQty = Math.min(locked, reqQty);
+
+            inventory.setAvailableQuantity(inventory.getAvailableQuantity() + realQty);
+            inventory.setLockedQuantity(locked - realQty);
+            inventoryList.add(inventory);
 
             // 写日志
             InventoryLog log = new InventoryLog();
             log.setGoodsSn(inventory.getGoodsSn());
             log.setGoodsName(inventory.getName());
             log.setChangeType(InventoryChangeType.UNLOCK);
-            log.setQuantity(inventory.getTotalQuantity());
+            log.setQuantity(realQty);
             log.setCreateTime(LocalDateTime.now());
             inventoryLogList.add(log);
         }
@@ -306,28 +271,7 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
         return inventoryLogMapper.selectPage(pageInfo, queryWrapper);
     }
 
-    @Override
-    public List<InventoryLock> getInventoryLocks(String goodsSn, String orderNo, Integer page, Integer limit, String sortField, String sortOrder) {
-        Page<InventoryLock> pageInfo = new Page<>(page, limit);
-        QueryWrapper<InventoryLock> queryWrapper = new QueryWrapper<>();
-        if (goodsSn != null && !goodsSn.isEmpty()) {
-            queryWrapper.eq("goods_sn", goodsSn);
-        }
-        if (orderNo != null && !orderNo.isEmpty()) {
-            queryWrapper.eq("order_sn", orderNo);
-        }
-        //排序
-        if (StringUtils.isNotBlank(sortField)) {
-            boolean asc = "asc".equalsIgnoreCase(sortOrder);
-            queryWrapper.orderBy(true, asc, sortField);
-        } else {
-            // 默认按创建时间倒序
-            queryWrapper.orderByDesc("create_time");
-        }
-        //分页查询
-        Page<InventoryLock> resultPage = inventoryLockMapper.selectPage(pageInfo, queryWrapper);
-        return resultPage.getRecords();
-    }
+
 
     @Override
     public CountDTO count() {

@@ -43,7 +43,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/goods/**",
             "/inventory/**",
             "/admin-order/**",
-            "/user/**"
+            "/user/**",
+            "/excel/**"
     };
 
     @Autowired

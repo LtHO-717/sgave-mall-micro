@@ -57,6 +57,7 @@ public class GoodsServiceImpl implements GoodsService {
         if (goods.getPrice() == null) {
             throw new IllegalArgumentException("商品价格不能为空");
         }
+
         goodsMapper.insert(goods);
         //保存商品后，更新缓存
         redisTemplate.opsForValue().set("goods:" + goods.getId(), goods, 60, TimeUnit.MINUTES);
@@ -71,7 +72,7 @@ public class GoodsServiceImpl implements GoodsService {
             queryWrapper.like(Goods::getGoodsSn, goodsSn);
         }
         if (!StringUtils.isBlank(name)) {
-            queryWrapper.eq(Goods::getName, name);
+            queryWrapper.like(Goods::getName, name);
         }
         if (goodsId != null) {
             queryWrapper.eq(Goods::getId, goodsId);
@@ -125,7 +126,7 @@ public class GoodsServiceImpl implements GoodsService {
             // ⚡ 动态获取 application.yml 配置的端口（如 9005）
             String port = environment.getProperty("local.server.port");
             // 返回 localhost 访问
-            String url = host + ":" + port + "/mall/" + fileName;
+            String url = "http://" + host + ":" + port + "/mall/" + fileName;
             fileInfo.setUrl(url);
 //            fileInfo.setUrl(filePath.toUri().getPath());
             fileInfo.setType(file.getContentType());

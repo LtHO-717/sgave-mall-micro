@@ -1,15 +1,17 @@
 package com.sgave.mall.sgavemallinventory.web;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.sgave.mall.sgavemallinventory.dto.CountDTO;
+import com.sgave.mall.sgavemallinventory.mapper.InventoryMapper;
 import com.sgave.mall.sgavemallinventory.pojo.Inventory;
-import com.sgave.mall.sgavemallinventory.pojo.InventoryLock;
 import com.sgave.mall.sgavemallinventory.dto.InventoryLockDTO;
 import com.sgave.mall.sgavemallinventory.pojo.InventoryLog;
 import com.sgave.mall.sgavemallinventory.service.AdminInventoryService;
 import com.sgave.mall.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,12 +22,16 @@ import java.util.List;
  * @description :
  * @createDate : 2025/11/6
  */
+@Tag(name = "库存管理")
 @RestController
 @RequestMapping("/inventory")
 public class AdminInventoryController {
 
     @Resource
     private AdminInventoryService adminInventoryService;
+
+    @Resource
+    private InventoryMapper inventoryMapper;
 
     @Operation(summary = "分页查看库存列表")
     @GetMapping("/list")
@@ -39,13 +45,6 @@ public class AdminInventoryController {
         return ResponseUtil.okList(inventoryIPage);
     }
 
-
-    @Operation(summary = "库存详情")
-    @GetMapping("/detail")
-    public Object inventoryDetail(@Parameter(name = "id", description = "库存id") @RequestParam(name = "id") Integer id) {
-        Inventory inventory = adminInventoryService.inventoryDetail(id);
-        return ResponseUtil.ok(inventory);
-    }
 
     @Operation(summary = "计算商品数")
     @GetMapping("/count")
@@ -128,11 +127,12 @@ public class AdminInventoryController {
     }
 
 
-    @Operation(summary = "分页查看锁定信息")
-    @GetMapping("/lock/list")
-    public Object getInventoryLocks(@RequestParam(name = "goodsSn", required = false) String goodsSn, @RequestParam(name = "orderNo", required = false) String orderNo, @RequestParam(name = "page", defaultValue = "1", required = false) Integer page, @RequestParam(name = "limit", defaultValue = "10", required = false) Integer limit, @RequestParam(name = "create_time", required = false, defaultValue = "create_time") String sortField, @RequestParam(name = "desc", required = false, defaultValue = "desc") String sortOrder) {
-        List<InventoryLock> inventoryLogList = adminInventoryService.getInventoryLocks(goodsSn, orderNo, page, limit, sortField, sortOrder);
-        return ResponseUtil.okList(inventoryLogList);
+    @Hidden
+    @Operation(summary = "服务间调用接口，不对前端暴露")
+    @GetMapping("/selectOne")
+    public Inventory selectOne(@RequestParam(name = "goodsSn") String goodsSn) {
+        return inventoryMapper.selectOne(new QueryWrapper<Inventory>().eq("goodsSn", goodsSn));
     }
+
 
 }
