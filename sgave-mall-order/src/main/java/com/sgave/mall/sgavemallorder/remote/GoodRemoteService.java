@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(value = "sgave-mall-goods")
 public interface GoodRemoteService {
 
-    @GetMapping("/goods/selectById")
+    @GetMapping("/admin/goods/selectById")
     Goods selectById(@RequestParam("id") Integer id);
 }

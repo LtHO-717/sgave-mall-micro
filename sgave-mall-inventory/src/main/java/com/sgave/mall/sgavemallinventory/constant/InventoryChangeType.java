@@ -13,6 +13,8 @@ public class InventoryChangeType {
     public static final String UNLOCK = "UNLOCK";
     public static final String REPLENISH = "REPLENISH";
     public static final String SET_MIN_STOCK = "SET_MIN_STOCK";
+    public static final String SALE = "SALE";
+    public static final String REFUND = "REFUND";
 
 
 }

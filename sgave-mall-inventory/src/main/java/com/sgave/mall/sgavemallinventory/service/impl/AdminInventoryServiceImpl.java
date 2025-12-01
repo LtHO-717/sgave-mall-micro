@@ -96,6 +96,9 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             log.setGoodsName(inventory.getName());
             log.setChangeType(InventoryChangeType.LOCK);
             log.setQuantity(req.getQuantity());
+            if (req.getOrderNo() != null) {
+                log.setOrderNo(req.getOrderNo());
+            }
             log.setCreateTime(LocalDateTime.now());
             inventoryLogList.add(log);
         }
@@ -132,6 +135,9 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             log.setGoodsName(inventory.getName());
             log.setChangeType(InventoryChangeType.UNLOCK);
             log.setQuantity(realQty);
+            if (req.getOrderNo() != null) {
+                log.setOrderNo(req.getOrderNo());
+            }
             log.setCreateTime(LocalDateTime.now());
             inventoryLogList.add(log);
         }
@@ -272,7 +278,6 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
     }
 
 
-
     @Override
     public CountDTO count() {
         // 统计数据
@@ -282,6 +287,37 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
         countDTO.setTotalGoodsCount(totalGoodsCount);
         countDTO.setWarnGoodsCount(warnGoodsCount);
         return countDTO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean reduceInventory(List<InventoryLockDTO> inventoryLockDTOList) {
+        ArrayList<Inventory> inventoryList = new ArrayList<>();
+        ArrayList<InventoryLog> inventoryLogList = new ArrayList<>();
+        for (InventoryLockDTO req : inventoryLockDTOList) {
+            // 查询库存
+            Inventory inventory = inventoryMapper.selectOne(new QueryWrapper<Inventory>().eq("goods_sn", req.getGoodsSn()));
+
+            if (inventory == null || inventory.getLockedQuantity() == null) continue;
+            // 更新库存数量
+
+            inventory.setTotalQuantity(inventory.getTotalQuantity() - req.getQuantity());
+            inventory.setLockedQuantity(inventory.getLockedQuantity() - req.getQuantity());
+            inventoryList.add(inventory);
+
+            // 写日志
+            InventoryLog log = new InventoryLog();
+            log.setGoodsSn(inventory.getGoodsSn());
+            log.setGoodsName(inventory.getName());
+            log.setChangeType(InventoryChangeType.SALE);
+            log.setQuantity(req.getQuantity());
+            log.setOrderNo(req.getOrderNo());
+            log.setCreateTime(LocalDateTime.now());
+            inventoryLogList.add(log);
+        }
+        inventoryMapper.updateById(inventoryList);
+        inventoryLogMapper.insert(inventoryLogList);
+        return true;
     }
 
 }

@@ -131,8 +131,14 @@ public class AdminInventoryController {
     @Operation(summary = "服务间调用接口，不对前端暴露")
     @GetMapping("/selectOne")
     public Inventory selectOne(@RequestParam(name = "goodsSn") String goodsSn) {
-        return inventoryMapper.selectOne(new QueryWrapper<Inventory>().eq("goodsSn", goodsSn));
+        return inventoryMapper.selectOne(new QueryWrapper<Inventory>().eq("goods_sn", goodsSn));
     }
 
 
+    @Hidden
+    @Operation(summary = "用户付款，减少库存。服务间调用接口，不对前端暴露")
+    @PostMapping("/reduce")
+    public Boolean reduceInventory(@RequestBody List<InventoryLockDTO> inventoryLockDTOList) {
+        return adminInventoryService.reduceInventory(inventoryLockDTOList);
+    }
 }

@@ -30,4 +30,7 @@ public interface AdminInventoryService {
     IPage<InventoryLog> getInventoryLogs(String goodsSn, String orderNo, Integer page, Integer limit, String sortField, String sortOrder);
 
     CountDTO count();
+
+    Boolean reduceInventory(List<InventoryLockDTO> inventoryLockDTOList);
+
 }

@@ -44,7 +44,7 @@ public class OrderTimeoutTask {
     @Scheduled(cron = "0 */5 * * * ?")
     @Transactional
     public void closeUnpaidOrders() {
-        // 当前时间减去30分钟，获取超时截止点
+        // 当前时间减去15分钟，获取超时截止点
         LocalDateTime expireTime = LocalDateTime.now().minusMinutes(15);
 
         // 查询未支付 + 超时的订单
@@ -58,34 +58,7 @@ public class OrderTimeoutTask {
             orderMapper.updateById(order);
 
             List<OrderItem> orderItemList = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId()));
-//            orderItemList.forEach(orderItem -> {
-//                Goods goods = goodsMapper.selectById(orderItem.getProductId());
-//                if (goods != null) {
-//                    // 获取锁对象
-//                    RLock lock = redissonClient.getLock("stock-lock-" + goods.getId());
-//
-//                    try {
-//                        // 尝试获取锁，等待 10 秒，持有锁 30 秒
-//                        boolean isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);
-//                        if (isLocked) {
-//                            System.out.println("成功获取到锁");
-//                            goods.setStock(goods.getStock() + orderItem.getQuantity());
-//                            //更新库存
-//                            goodsMapper.updateById(goods);
-//                        } else {
-//                            System.out.println("未能获取到锁");
-//                        }
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    } finally {
-//                        // 释放锁
-//                        if (lock.isHeldByCurrentThread()) {
-//                            lock.unlock();
-//                            System.out.println("锁已释放");
-//                        }
-//                    }
-//                }
-//            });
+
             List<RLock> acquiredLocks = new ArrayList<>();
             List<InventoryLockDTO> inventoryLockDTOList = new ArrayList<>();
             try {

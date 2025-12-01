@@ -18,17 +18,8 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../../../../../../Repository/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-          <entry name="$PROJECT_DIR$/../../../../../../Repository/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
         <module name="sgave-mall-goods" />
-      </profile>
-      <profile name="Annotation profile for sgave-mall-order" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$PROJECT_DIR$/../../../../../../Repository/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-        </processorPath>
         <module name="sgave-mall-order" />
       </profile>
     </annotationProcessing>

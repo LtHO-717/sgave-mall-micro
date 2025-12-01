@@ -23,4 +23,7 @@ public interface InventoryRemoteService {
     @PostMapping("/inventory/unlockBatch")
     Object unlockBatch(@RequestBody List<InventoryLockDTO> inventoryLockDTOList);
 
+    @PostMapping("/inventory/reduce")
+    Boolean reduceInventory(@RequestBody List<InventoryLockDTO> inventoryLockDTOList);
+
 }

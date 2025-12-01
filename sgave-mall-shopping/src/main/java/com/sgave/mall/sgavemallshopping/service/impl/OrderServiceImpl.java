@@ -204,6 +204,44 @@ public class OrderServiceImpl implements OrderService {
         if (!handleOption.isPay()) {
             return ResponseUtil.fail(OrderConstant.ORDER_INVALID_OPERATION, "订单不能支付");
         }
+        List<OrderItem> orderItemList = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId()));
+        List<RLock> acquiredLocks = new ArrayList<>();
+        List<InventoryLockDTO> inventoryLockDTOList = new ArrayList<>();
+        try {
+            for (OrderItem orderItem : orderItemList) {
+                Goods good = goodsMapper.selectById(orderItem.getProductId());
+                if (good == null) {
+                    return ResponseUtil.fail(601, "商品不存在");
+                }
+                // 分布式锁
+                RLock lock = redissonClient.getLock("stock-lock-" + good.getId());
+                // 尝试加锁
+                boolean isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);
+                if (!isLocked) {
+                    throw new RuntimeException("未能获取到库存锁，商品ID：" + good.getId());
+                }
+                acquiredLocks.add(lock); // 记录已加锁的，出错需释放
+
+                // 构建批量锁定 DTO
+                InventoryLockDTO dto = new InventoryLockDTO();
+                dto.setGoodsSn(good.getGoodsSn());
+                dto.setQuantity(orderItem.getQuantity());
+                dto.setOrderNo(order.getOrderNo());
+                inventoryLockDTOList.add(dto);
+            }
+            //全部锁成功后再批量减总库存
+            inventoryRemoteFacade.reduceInventory(inventoryLockDTOList);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            // 释放所有已成功获得的锁
+            for (RLock lock : acquiredLocks) {
+                if (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
+            }
+        }
+
         // 模拟支付成功，更新订单状态为“已支付”
         order.setStatus(OrderConstant.STATUS_PAY);
         order.setPayTime(new Date());
@@ -357,42 +395,6 @@ public class OrderServiceImpl implements OrderService {
         //批量插入订单商品明细表
         orderItemMapper.insert(orderItemList);
         //提交订单减少库存
-
-
-//        orderItemList.forEach(orderItem -> {
-//            Goods good = goodsMapper.selectById(orderItem.getProductId());
-//            if (good != null) {
-//                // 获取锁对象
-//                RLock lock = redissonClient.getLock("stock-lock-" + good.getId());
-//
-//                try {
-//                    // 尝试获取锁，等待 10 秒，持有锁 30 秒
-//                    boolean isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);
-//                    if (isLocked) {
-//                        System.out.println("成功获取到锁");
-//
-//                        int currentStock = good.getStock();
-//                        int newStock = currentStock - orderItem.getQuantity();
-//                        if (newStock < 0 || currentStock <= 0) {
-//                            throw new RuntimeException("库存异常，商品ID：" + good.getId());
-//                        }
-//                        good.setStock(newStock);
-//                        //更新库存
-//                        goodsMapper.updateById(good);
-//                    } else {
-//                        System.out.println("未能获取到锁");
-//                    }
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                } finally {
-//                    // 释放锁
-//                    if (lock.isHeldByCurrentThread()) {
-//                        lock.unlock();
-//                        System.out.println("锁已释放");
-//                    }
-//                }
-//            }
-//        });
 
         List<RLock> acquiredLocks = new ArrayList<>();
         List<InventoryLockDTO> inventoryLockDTOList = new ArrayList<>();
@@ -565,35 +567,6 @@ public class OrderServiceImpl implements OrderService {
         // 查询订单商品明细
         List<OrderItem> orderItemList = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId()));
         // 遍历订单商品，更新库存
-//        orderItemList.forEach(orderItem -> {
-//            Goods good = goodsMapper.selectById(orderItem.getProductId());
-//            if (good != null) {
-//                // 获取锁对象
-//                RLock lock = redissonClient.getLock("stock-lock-" + good.getId());
-//
-//                try {
-//                    // 尝试获取锁，等待 10 秒，持有锁 30 秒
-//                    boolean isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);
-//                    if (isLocked) {
-//                        System.out.println("成功获取到锁");
-//                        good.setStock(good.getStock() + orderItem.getQuantity());
-//                        //更新库存
-//                        goodsMapper.updateById(good);
-//                    } else {
-//                        System.out.println("未能获取到锁");
-//                    }
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                } finally {
-//                    // 释放锁
-//                    if (lock.isHeldByCurrentThread()) {
-//                        lock.unlock();
-//                        System.out.println("锁已释放");
-//                    }
-//                }
-//            }
-//        });
-
         List<RLock> acquiredLocks = new ArrayList<>();
         List<InventoryLockDTO> inventoryLockDTOList = new ArrayList<>();
         try {

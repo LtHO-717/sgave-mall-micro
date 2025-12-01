@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemallorder.config;
+package com.sgave.mall.sgavemallinventory.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

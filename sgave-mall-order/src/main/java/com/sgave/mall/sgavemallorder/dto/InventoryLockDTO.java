@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemallinventory.dto;
+package com.sgave.mall.sgavemallorder.dto;
 
 
 import lombok.Data;

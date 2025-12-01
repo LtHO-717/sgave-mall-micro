@@ -55,4 +55,16 @@ public class InventoryRemoteFacade {
     }
 
 
+    public Boolean reduceInventory(List<InventoryLockDTO> inventoryLockDTOList) {
+        try {
+            Boolean response = inventoryRemoteService.reduceInventory(inventoryLockDTOList);
+            log.info("用户付款，减少库存,inventoryLockDTOList={}，返回：{}", JSON.toJSONString(inventoryLockDTOList), JSON.toJSONString(response));
+            return response;
+        } catch (Exception e) {
+            log.error("用户付款，减少库存异常，inventoryLockDTOList={}", JSON.toJSONString(inventoryLockDTOList), e);
+            return null;
+        }
+    }
+
+
 }

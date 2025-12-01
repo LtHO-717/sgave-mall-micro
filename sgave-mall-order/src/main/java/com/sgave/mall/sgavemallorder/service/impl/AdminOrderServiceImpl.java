@@ -6,11 +6,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sgave.mall.constant.AdminResponseCode;
 import com.sgave.mall.sgavemallorder.constant.OrderConstant;
 import com.sgave.mall.sgavemallorder.dto.*;
+import com.sgave.mall.sgavemallorder.listener.RefundInventoryProducer;
 import com.sgave.mall.sgavemallorder.mapper.OrderItemMapper;
 import com.sgave.mall.sgavemallorder.mapper.OrderMapper;
 import com.sgave.mall.sgavemallorder.remote.facade.GoodRemoteFacade;
 import com.sgave.mall.sgavemallorder.service.AdminOrderService;
-import com.sgave.mall.util.JacksonUtil;
 import com.sgave.mall.util.ResponseUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -38,17 +38,10 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Resource
     private GoodRemoteFacade goodRemoteFacade;
 
-//    @Resource
-//    private RocketMQConfig rocketMQConfig;
+    @Resource
+    private RefundInventoryProducer refundInventoryProducer;
 
     private static final String REFUND_STOCK_TOPIC = "refund-stock-topic";
-
-
-//    private final RocketMQTemplate rocketMQTemplate;
-//
-//    public AdminOrderServiceImpl(RocketMQTemplate rocketMQTemplate) {
-//        this.rocketMQTemplate = rocketMQTemplate;
-//    }
 
 
     @Override
@@ -122,26 +115,19 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         // 商品货品数量增加
         List<OrderItem> orderItems = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
 
-        List<RefundStockItemDTO> refundStockItemDTOS = orderItems.stream().map(orderItem -> {
 
-            RefundStockItemDTO refundStockItemDTO = new RefundStockItemDTO();
-            refundStockItemDTO.setProductId(orderItem.getProductId());
-            refundStockItemDTO.setQuantity(orderItem.getQuantity());
+        List<InventoryLockDTO> inventoryLockDTOList = new ArrayList<>();
+
+        for (OrderItem orderItem : orderItems) {
             Goods goods = goodRemoteFacade.selectById(Math.toIntExact(orderItem.getProductId()));
-            refundStockItemDTO.setGoodsSn(goods.getGoodsSn());
-            return refundStockItemDTO;
-        }).toList();
-
-        // 发送库存回补消息
-        RefundStockMessage message = new RefundStockMessage();
-        message.setOrderId(orderId);
-        message.setItems(refundStockItemDTOS);
-
-//        try {
-//            rocketMQTemplate.convertAndSend(REFUND_STOCK_TOPIC, message);
-//        } catch (Exception e) {
-//            throw new RuntimeException("发送库存回补消息失败", e);
-//        }
+            // 构建批量锁定 DTO
+            InventoryLockDTO dto = new InventoryLockDTO();
+            dto.setGoodsSn(goods.getGoodsSn());
+            dto.setQuantity(orderItem.getQuantity());
+            dto.setOrderNo(order.getOrderNo());
+            inventoryLockDTOList.add(dto);
+        }
+        refundInventoryProducer.sendRefundStockMessage(inventoryLockDTOList);
 
         return ResponseUtil.ok();
     }

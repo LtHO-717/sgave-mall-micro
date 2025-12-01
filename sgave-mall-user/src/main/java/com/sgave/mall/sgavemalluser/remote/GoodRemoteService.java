@@ -11,6 +11,6 @@ import java.util.List;
 @FeignClient(value = "sgave-mall-goods")
 public interface GoodRemoteService {
 
-    @PostMapping("/goods/selectBatchIds")
+    @PostMapping("/admin/goods/selectBatchIds")
     List<Goods> selectBatchIds(@RequestBody List<Integer> goodIds);
 }
