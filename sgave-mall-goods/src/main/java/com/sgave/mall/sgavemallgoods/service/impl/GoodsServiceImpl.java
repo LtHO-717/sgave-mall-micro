@@ -6,10 +6,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sgave.mall.sgavemallgoods.dto.FileInfo;
 import com.sgave.mall.sgavemallgoods.dto.Goods;
-import com.sgave.mall.sgavemallgoods.dto.Inventory;
 import com.sgave.mall.sgavemallgoods.mapper.FileMapper;
 import com.sgave.mall.sgavemallgoods.mapper.GoodsMapper;
-import com.sgave.mall.sgavemallgoods.remote.facade.InventoryRemoteFacade;
 import com.sgave.mall.sgavemallgoods.service.GoodsService;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
@@ -39,8 +37,6 @@ public class GoodsServiceImpl implements GoodsService {
     @Resource
     private GoodsMapper goodsMapper;
     @Resource
-    private InventoryRemoteFacade inventoryRemoteFacade;
-    @Resource
     private FileMapper fileMapper;
     @Resource
     private RedisTemplate redisTemplate;
@@ -68,6 +64,7 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Override
     public IPage<Goods> getGoodsList(Integer goodsId, String goodsSn, String name, Integer current, Integer size) {
+        Page<Goods> page = new Page<>(current, size);
         LambdaQueryWrapper<Goods> queryWrapper = new LambdaQueryWrapper<>();
         if (!StringUtils.isBlank(goodsSn)) {
             queryWrapper.like(Goods::getGoodsSn, goodsSn);
@@ -79,27 +76,8 @@ public class GoodsServiceImpl implements GoodsService {
             queryWrapper.eq(Goods::getId, goodsId);
         }
         queryWrapper.orderByDesc(Goods::getCreateTime);
-        // 查询所有
-        List<Goods> allGoods = goodsMapper.selectList(queryWrapper);
 
-        // 过滤库存
-        List<Goods> filtered = allGoods.stream()
-                .filter(g -> {
-                    Inventory inv = inventoryRemoteFacade.selectOne(g.getGoodsSn());
-                    return inv != null && inv.getAvailableQuantity() != null;
-                })
-                .toList();
-
-        // 手动分页
-        int start = (current - 1) * size;
-        int end = Math.min(start + size, filtered.size());
-        List<Goods> pageRecords = start >= filtered.size() ? new ArrayList<>() : filtered.subList(start, end);
-
-        // 封装结果
-        Page<Goods> result = new Page<>(current, size);
-        result.setTotal(filtered.size()); // 这里是过滤后的真实总数
-        result.setRecords(pageRecords);
-        return result;
+        return goodsMapper.selectPage(page, queryWrapper);
     }
 
     @Override

@@ -8,6 +8,9 @@ import com.sgave.mall.sgavemallshopping.pojo.Collect;
 import com.sgave.mall.sgavemallshopping.pojo.CustomerUser;
 import com.sgave.mall.sgavemallshopping.pojo.Goods;
 import com.sgave.mall.sgavemallshopping.mapper.GoodsMapper;
+import com.sgave.mall.sgavemallshopping.pojo.Inventory;
+import com.sgave.mall.sgavemallshopping.remote.InventoryRemoteService;
+import com.sgave.mall.sgavemallshopping.remote.facade.InventoryRemoteFacade;
 import com.sgave.mall.sgavemallshopping.service.CollectService;
 import com.sgave.mall.sgavemallshopping.service.CustomerGoodsService;
 import com.sgave.mall.sgavemallshopping.service.CustomerService;
@@ -17,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,25 +36,42 @@ public class CustomerGoodsServiceImpl implements CustomerGoodsService {
     @Autowired
     private RedisTemplate redisTemplate;
     @Autowired
-    private CustomerService customerService;
-    @Autowired
     private CollectService collectService;
+    @Autowired
+    private InventoryRemoteFacade inventoryRemoteFacade;
 
     @Override
     public IPage<Goods> getGoodsList(Integer goodsId, String goodsSn, String name, Integer current, Integer size) {
-        Page<Goods> page = new Page<>(current, size);
         LambdaQueryWrapper<Goods> queryWrapper = new LambdaQueryWrapper<>();
-        if(!StringUtils.isBlank(goodsSn)){
+        if (!StringUtils.isBlank(goodsSn)) {
             queryWrapper.like(Goods::getGoodsSn, goodsSn);
         }
-        if(!StringUtils.isBlank(name)){
+        if (!StringUtils.isBlank(name)) {
             queryWrapper.like(Goods::getName, name);
         }
-        if(goodsId!=null){
+        if (goodsId != null) {
             queryWrapper.eq(Goods::getId, goodsId);
         }
+        queryWrapper.orderByDesc(Goods::getCreateTime);
+        // 查询所有
+        List<Goods> allGoods = goodsMapper.selectList(queryWrapper);
+        // 过滤库存
+        List<Goods> filtered = allGoods.stream()
+                .filter(g -> {
+                    Inventory inv = inventoryRemoteFacade.selectOne(g.getGoodsSn());
+                    return inv != null && inv.getAvailableQuantity() != null;
+                })
+                .toList();
+        // 手动分页
+        int start = (current - 1) * size;
+        int end = Math.min(start + size, filtered.size());
+        List<Goods> pageRecords = start >= filtered.size() ? new ArrayList<>() : filtered.subList(start, end);
 
-        return goodsMapper.selectPage(page, queryWrapper);
+        // 封装结果
+        Page<Goods> result = new Page<>(current, size);
+        result.setTotal(filtered.size()); // 这里是过滤后的真实总数
+        result.setRecords(pageRecords);
+        return result;
     }
 
     @Override
@@ -59,6 +81,8 @@ public class CustomerGoodsServiceImpl implements CustomerGoodsService {
         Goods goods = (Goods) redisTemplate.opsForValue().get(key);
         if (goods == null) {
             goods = goodsMapper.selectById(goodsId);
+            Inventory inventory = inventoryRemoteFacade.selectOne(goods.getGoodsSn());
+            goods.setStock(inventory.getAvailableQuantity());
             if (goods != null) {
                 redisTemplate.opsForValue().set(key, goods, 60, TimeUnit.MINUTES);
             }

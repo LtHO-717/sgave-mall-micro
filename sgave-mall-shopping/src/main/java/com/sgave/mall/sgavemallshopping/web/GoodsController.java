@@ -36,6 +36,7 @@ public class GoodsController {
         System.out.println("总页数:" + goodsIPage.getPages());
         System.out.println("当前页:" + goodsIPage.getCurrent());
         System.out.println("页大小:" + goodsIPage.getSize());
+        //改为新增分页包装方法
         return ResponseUtil.okList(goodsIPage);
     }
 
