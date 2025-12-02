@@ -14,7 +14,7 @@ public class OrderItem {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long orderId;
-    private Long productId;
+    private Integer productId;
     private String productName;
     private Long skuId;
     private String skuAttr;

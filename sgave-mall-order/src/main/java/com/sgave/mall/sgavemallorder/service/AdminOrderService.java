@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemallorder.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.sgave.mall.sgavemallorder.dto.Order;
+import com.sgave.mall.sgavemallorder.pojo.Order;
 import com.sgave.mall.sgavemallorder.dto.OrderDTO;
 import jakarta.validation.constraints.NotNull;
 

@@ -9,6 +9,9 @@ import com.sgave.mall.sgavemallorder.dto.*;
 import com.sgave.mall.sgavemallorder.listener.RefundInventoryProducer;
 import com.sgave.mall.sgavemallorder.mapper.OrderItemMapper;
 import com.sgave.mall.sgavemallorder.mapper.OrderMapper;
+import com.sgave.mall.sgavemallorder.pojo.Goods;
+import com.sgave.mall.sgavemallorder.pojo.Order;
+import com.sgave.mall.sgavemallorder.pojo.OrderItem;
 import com.sgave.mall.sgavemallorder.remote.facade.GoodRemoteFacade;
 import com.sgave.mall.sgavemallorder.service.AdminOrderService;
 import com.sgave.mall.util.ResponseUtil;
@@ -83,7 +86,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     @Override
     @Transactional
     public Object refund(OrderDTO orderDTO) {
-        Integer orderId = orderDTO.getOrderId();
+        Long orderId = orderDTO.getOrderId();
         String refundMoney = orderDTO.getRefundMoney();
         if (orderId == null) {
             return ResponseUtil.badArgument();
@@ -119,7 +122,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         List<InventoryLockDTO> inventoryLockDTOList = new ArrayList<>();
 
         for (OrderItem orderItem : orderItems) {
-            Goods goods = goodRemoteFacade.selectById(Math.toIntExact(orderItem.getProductId()));
+            Goods goods = goodRemoteFacade.selectById(orderItem.getProductId());
             // 构建批量锁定 DTO
             InventoryLockDTO dto = new InventoryLockDTO();
             dto.setGoodsSn(goods.getGoodsSn());

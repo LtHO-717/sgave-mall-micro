@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class OrderDTO {
 
-    private Integer orderId;
+    private Long orderId;
     private String refundMoney;
 
 }

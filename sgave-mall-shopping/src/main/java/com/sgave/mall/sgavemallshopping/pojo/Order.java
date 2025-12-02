@@ -32,7 +32,7 @@ public class Order {
     /**
      * 用户ID
      */
-    private Long userId;
+    private Integer userId;
 
     /**
      * 订单总金额

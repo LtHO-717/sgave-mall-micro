@@ -1,14 +1,13 @@
 package com.sgave.mall.sgavemallorder.web;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.sgave.mall.sgavemallorder.dto.Order;
+import com.sgave.mall.sgavemallorder.pojo.Order;
 import com.sgave.mall.sgavemallorder.dto.OrderDTO;
 import com.sgave.mall.sgavemallorder.service.AdminOrderService;
 import com.sgave.mall.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 

@@ -9,11 +9,9 @@ import com.sgave.mall.sgavemallshopping.pojo.CustomerUser;
 import com.sgave.mall.sgavemallshopping.pojo.Goods;
 import com.sgave.mall.sgavemallshopping.mapper.GoodsMapper;
 import com.sgave.mall.sgavemallshopping.pojo.Inventory;
-import com.sgave.mall.sgavemallshopping.remote.InventoryRemoteService;
 import com.sgave.mall.sgavemallshopping.remote.facade.InventoryRemoteFacade;
 import com.sgave.mall.sgavemallshopping.service.CollectService;
 import com.sgave.mall.sgavemallshopping.service.CustomerGoodsService;
-import com.sgave.mall.sgavemallshopping.service.CustomerService;
 import com.sgave.mall.sgavemallshopping.util.SecurityUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +40,7 @@ public class CustomerGoodsServiceImpl implements CustomerGoodsService {
 
     @Override
     public IPage<Goods> getGoodsList(Integer goodsId, String goodsSn, String name, Integer current, Integer size) {
+        Page<Goods> page = new Page<>(current, size);
         LambdaQueryWrapper<Goods> queryWrapper = new LambdaQueryWrapper<>();
         if (!StringUtils.isBlank(goodsSn)) {
             queryWrapper.like(Goods::getGoodsSn, goodsSn);
@@ -53,25 +52,8 @@ public class CustomerGoodsServiceImpl implements CustomerGoodsService {
             queryWrapper.eq(Goods::getId, goodsId);
         }
         queryWrapper.orderByDesc(Goods::getCreateTime);
-        // 查询所有
-        List<Goods> allGoods = goodsMapper.selectList(queryWrapper);
-        // 过滤库存
-        List<Goods> filtered = allGoods.stream()
-                .filter(g -> {
-                    Inventory inv = inventoryRemoteFacade.selectOne(g.getGoodsSn());
-                    return inv != null && inv.getAvailableQuantity() != null;
-                })
-                .toList();
-        // 手动分页
-        int start = (current - 1) * size;
-        int end = Math.min(start + size, filtered.size());
-        List<Goods> pageRecords = start >= filtered.size() ? new ArrayList<>() : filtered.subList(start, end);
 
-        // 封装结果
-        Page<Goods> result = new Page<>(current, size);
-        result.setTotal(filtered.size()); // 这里是过滤后的真实总数
-        result.setRecords(pageRecords);
-        return result;
+        return goodsMapper.selectPage(page, queryWrapper);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.sgave.mall.sgavemallorder.remote;
 
-import com.sgave.mall.sgavemallorder.dto.Goods;
+import com.sgave.mall.sgavemallorder.pojo.Goods;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
