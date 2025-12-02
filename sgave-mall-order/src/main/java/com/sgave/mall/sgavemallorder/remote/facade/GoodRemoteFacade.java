@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemallorder.remote.facade;
 
 import com.alibaba.fastjson.JSON;
-import com.sgave.mall.sgavemallorder.dto.Goods;
+import com.sgave.mall.sgavemallorder.pojo.Goods;
 import com.sgave.mall.sgavemallorder.remote.GoodRemoteService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemallorder.dto;
+package com.sgave.mall.sgavemallorder.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

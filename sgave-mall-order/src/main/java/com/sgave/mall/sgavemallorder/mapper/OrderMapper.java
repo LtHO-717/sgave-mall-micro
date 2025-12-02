@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemallorder.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.sgave.mall.sgavemallorder.dto.Order;
+import com.sgave.mall.sgavemallorder.pojo.Order;
 
 /**
  * @author : zeping

@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemallorder.dto;
+package com.sgave.mall.sgavemallorder.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -19,7 +19,7 @@ public class OrderItem {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long orderId;
-    private Long productId;
+    private Integer productId;
     private String productName;
     private Long skuId;
     private String skuAttr;

@@ -86,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> allOrderItems = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().in(OrderItem::getOrderId, orderIds));
 
         // 提取所有商品ID
-        List<Long> productIds = allOrderItems.stream().map(OrderItem::getProductId).distinct().toList();
+        List<Integer> productIds = allOrderItems.stream().map(OrderItem::getProductId).distinct().toList();
 
         // 一次性查询所有商品
         List<Goods> goodsList = goodsMapper.selectBatchIds(productIds);
@@ -98,7 +98,7 @@ public class OrderServiceImpl implements OrderService {
             List<GoodsVO> goodsVOList = new ArrayList<>();
             for (OrderItem item : allOrderItems) {
                 if (item.getOrderId().equals(order.getId())) {
-                    Goods goods = goodsMap.get(item.getProductId().intValue());
+                    Goods goods = goodsMap.get(item.getProductId());
                     if (goods != null) {
                         GoodsVO goodsVO = new GoodsVO();
                         BeanUtils.copyProperties(goods, goodsVO);
@@ -144,7 +144,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseUtil.fail(OrderConstant.ORDER_UNKNOWN, "订单不存在");
         }
         // 冗余校验：订单是否属于当前用户
-        if (!order.getUserId().equals(Long.valueOf(userId))) {
+        if (!order.getUserId().equals(userId)) {
             return ResponseUtil.fail(OrderConstant.ORDER_INVALID, "不是当前用户的订单");
         }
         // 查询收货地址
@@ -266,7 +266,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             return ResponseUtil.badArgumentValue();
         }
-        if (!order.getUserId().equals(Long.valueOf(userId))) {
+        if (!order.getUserId().equals(userId)) {
             return ResponseUtil.badArgumentValue();
         }
 
@@ -362,7 +362,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = new Order();
-        order.setUserId(Long.valueOf(userId));
+        order.setUserId(userId);
         order.setOrderNo(this.generateOrderSn(userId));
         order.setStatus(OrderConstant.STATUS_INIT);
         order.setAddressId(checkedAddress.getId());
@@ -383,7 +383,7 @@ public class OrderServiceImpl implements OrderService {
             ShoppingCart cart = cartMap.get(good.getId());
             OrderItem orderItem = new OrderItem();
             orderItem.setOrderId(order.getId());
-            orderItem.setProductId(Long.valueOf(good.getId()));
+            orderItem.setProductId(good.getId());
             orderItem.setProductName(good.getName());
             orderItem.setPrice(good.getPrice());
             orderItem.setSkuId(1L);
