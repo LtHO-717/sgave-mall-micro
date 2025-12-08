@@ -1,0 +1,157 @@
+spring:
+  application:
+    name: sgave-mall-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    gateway:
+      routes:
+        ##################################################
+        # 商品服务 (sgave-mall-goods)
+        ##################################################
+        # Swagger 文档
+        - id: goods-docs
+          uri: lb://sgave-mall-goods
+          predicates:
+            - Path=/goods/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+        # 业务接口
+        - id: goods
+          uri: lb://sgave-mall-goods
+          predicates:
+            - Path=/admin/goods/**,/excel/**
+
+        ##################################################
+        # 库存服务 (sgave-mall-inventory)
+        ##################################################
+        # Swagger 文档
+        - id: inventory-docs
+          uri: lb://sgave-mall-inventory
+          predicates:
+            - Path=/inventory/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+        # 业务接口
+        - id: inventory
+          uri: lb://sgave-mall-inventory
+          predicates:
+            - Path=/inventory/**
+
+        ##################################################
+        # 订单服务 (sgave-mall-order)
+        ##################################################
+        # Swagger 文档
+        - id: order-docs
+          uri: lb://sgave-mall-order
+          predicates:
+            - Path=/admin-order/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+        # 业务接口
+        - id: order
+          uri: lb://sgave-mall-order
+          predicates:
+            - Path=/admin-order/**
+
+        ##################################################
+        # 用户服务 (sgave-mall-user)
+        ##################################################
+        # Swagger 文档
+        - id: user-docs
+          uri: lb://sgave-mall-user
+          predicates:
+            - Path=/user/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+        # user 业务接口
+        - id: user
+          uri: lb://sgave-mall-user
+          predicates:
+            - Path=/user/**
+
+        # admin 业务接口（此处不加 StripPrefix，否则路径被截断）
+        - id: admin
+          uri: lb://sgave-mall-user
+          predicates:
+            - Path=/admin/**
+
+        # admin collect 业务（保持原有逻辑）
+        - id: admin-collect
+          uri: lb://sgave-mall-user
+          predicates:
+            - Path=/admin/collect/**
+
+        # foot 业务
+        - id: foot-user
+          uri: lb://sgave-mall-user
+          predicates:
+            - Path=/foot/**
+
+
+        ##################################################
+        # web / 客户端服务 (sgave-mall-shopping)
+        ##################################################
+        # Swagger 文档
+        - id: shopping-docs
+          uri: lb://sgave-mall-shopping
+          predicates:
+            - Path=/customer/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+        # 业务接口
+        - id: shopping
+          uri: lb://sgave-mall-shopping
+          predicates:
+            - Path=/customer/**,/address/**,/cart/**,/web/**,/collect/**,/order/**,/footprint/**
+
+
+jwt:
+  white-list:
+    - /admin/admin
+    - /admin/logout
+    - /customer/login
+    - /customer/logout
+    - /customer/register
+    - /*/v3/api-docs
+    - /web/**
+
+gateway:
+  cors:
+    allowed-origins:
+      - http://localhost:9527
+      - http://192.168.1.140:3000
+      - http://192.168.1.25:9010
+      - http://192.168.1.26:9011
+
+knife4j:
+  gateway:
+    enabled: true
+    routes:
+      - name: 商品服务
+        url: /goods/v3/api-docs
+        service-name: sgave-mall-goods
+
+      - name: 库存服务
+        url: /inventory/v3/api-docs
+        service-name: sgave-mall-inventory
+
+      - name: 订单服务
+        url: /admin-order/v3/api-docs
+        service-name: sgave-mall-order
+
+      - name: 用户服务
+        url: /user/v3/api-docs
+        service-name: sgave-mall-user
+
+      - name: web服务
+        url: /customer/v3/api-docs
+        service-name: sgave-mall-shopping
+server:
+  port: 9000

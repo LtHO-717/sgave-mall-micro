@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="sgave-mall-common" />
+        <module name="sgave-mall-shopping" />
+        <module name="sgave-mall-order" />
+        <module name="sgave-mall-inventory" />
+        <module name="sgave-mall-user" />
+        <module name="sgave-mall-gateway" />
+        <module name="sgave-mall-goods" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

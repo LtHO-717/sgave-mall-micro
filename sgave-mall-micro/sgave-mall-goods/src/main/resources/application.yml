@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: sgave-mall-goods
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mall?useUnicode=true&serverTimezone=GMT%2B8&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+
+  #ES配置
+  elasticsearch:
+    uris: http://localhost:9200  # ES 访问地址
+    username:             # ES 登录用户名 可空
+    password:             # ES 登录密码 可空
+    connection-timeout: 5000        # 连接超时时间
+    socket-timeout: 30000        # Socket 超时时间
+
+server:
+  port: 9005
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
