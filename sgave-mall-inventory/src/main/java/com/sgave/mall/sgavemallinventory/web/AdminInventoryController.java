@@ -38,15 +38,16 @@ public class AdminInventoryController {
     public Object inventoryList(@RequestParam(name = "page", defaultValue = "1", required = false) Integer page,
                                 @RequestParam(name = "limit", defaultValue = "10", required = false) Integer limit,
                                 @RequestParam(name = "name", required = false) String name,
+                                @RequestParam(name = "goodsSn", required = false) String goodsSn,
                                 @RequestParam(name = "minStatus", required = false) Byte minStatus,
                                 @RequestParam(name = "create_time", required = false, defaultValue = "create_time") String sortField,
                                 @RequestParam(name = "desc", required = false, defaultValue = "desc") String sortOrder) {
-        IPage<Inventory> inventoryIPage = adminInventoryService.getInventoryList(page, limit, name, minStatus, sortField, sortOrder);
+        IPage<Inventory> inventoryIPage = adminInventoryService.getInventoryList(page, limit, name, goodsSn, minStatus, sortField, sortOrder);
         return ResponseUtil.okList(inventoryIPage);
     }
 
 
-    @Operation(summary = "计算商品数")
+    @Operation(summary = "统计库存数据")
     @GetMapping("/count")
     public Object count() {
         CountDTO countDTO = adminInventoryService.count();
@@ -79,7 +80,7 @@ public class AdminInventoryController {
 
 
     @Operation(summary = "设置库存预警线")
-    @PutMapping("/setMinStock")
+    @PutMapping("/minStock")
     public Object setMinStock(@RequestParam("goodsSn") String goodsSn, @RequestParam("minStock") Integer minStock) {
         Boolean result = adminInventoryService.setMinStock(goodsSn, minStock);
         if (result) {

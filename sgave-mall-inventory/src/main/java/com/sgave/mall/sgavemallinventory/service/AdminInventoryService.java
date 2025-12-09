@@ -15,7 +15,7 @@ import java.util.List;
  */
 public interface AdminInventoryService {
 
-    IPage<Inventory> getInventoryList(Integer page, Integer limit, String name, Byte minStatus, String sortField, String sortOrder);
+    IPage<Inventory> getInventoryList(Integer page, Integer limit, String name, String goodsSn, Byte minStatus, String sortField, String sortOrder);
 
     Boolean lockBatch(List<InventoryLockDTO> inventoryLockDTOList);
 

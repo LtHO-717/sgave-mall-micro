@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemallgoods.dto;
+package com.sgave.mall.sgavemallgoods.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

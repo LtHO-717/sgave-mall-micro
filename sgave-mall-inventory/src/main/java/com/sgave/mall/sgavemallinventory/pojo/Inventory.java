@@ -27,8 +27,8 @@ public class Inventory extends BaseBean implements Serializable {
     private Integer availableQuantity;
     private Integer lockedQuantity;
     private Integer minStock;
-    private Byte lockStatus;
     private Byte minStatus;
     private LocalDateTime lastCheckTime;
+    private Integer version;
     private Integer isDeleted;
 }

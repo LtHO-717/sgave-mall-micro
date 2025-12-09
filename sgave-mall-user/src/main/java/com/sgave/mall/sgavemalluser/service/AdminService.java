@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemalluser.service;
 
 
-import com.sgave.mall.sgavemalluser.dto.AdminUser;
+import com.sgave.mall.sgavemalluser.pojo.AdminUser;
 
 /**
  * @author : zeping

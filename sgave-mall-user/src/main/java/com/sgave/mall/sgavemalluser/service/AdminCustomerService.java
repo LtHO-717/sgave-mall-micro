@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemalluser.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.sgave.mall.sgavemalluser.dto.CustomerUser;
+import com.sgave.mall.sgavemalluser.pojo.CustomerUser;
 
 /**
  * @author : zeping

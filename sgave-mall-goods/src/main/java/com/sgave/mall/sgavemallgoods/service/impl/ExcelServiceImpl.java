@@ -1,6 +1,6 @@
 package com.sgave.mall.sgavemallgoods.service.impl;
 
-import com.sgave.mall.sgavemallgoods.dto.Goods;
+import com.sgave.mall.sgavemallgoods.pojo.Goods;
 import com.sgave.mall.sgavemallgoods.mapper.GoodsMapper;
 import com.sgave.mall.sgavemallgoods.service.ExcelService;
 import com.sgave.mall.sgavemallgoods.service.GoodsService;

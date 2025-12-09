@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sgave.mall</groupId>
-    <artifactId>sgave-mall-admin</artifactId>
+    <artifactId>sgave-mall-micro</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>

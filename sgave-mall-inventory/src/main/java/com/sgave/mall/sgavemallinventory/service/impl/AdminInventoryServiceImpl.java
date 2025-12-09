@@ -2,6 +2,7 @@ package com.sgave.mall.sgavemallinventory.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sgave.mall.sgavemallinventory.constant.InventoryChangeType;
@@ -42,7 +43,7 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
 
 
     @Override
-    public IPage<Inventory> getInventoryList(Integer page, Integer limit, String name, Byte minStatus, String sortField, String sortOrder) {
+    public IPage<Inventory> getInventoryList(Integer page, Integer limit, String name, String goodsSn, Byte minStatus, String sortField, String sortOrder) {
         Page<Inventory> pageInfo = new Page<>(page, limit);
         QueryWrapper<Inventory> queryWrapper = new QueryWrapper<>();
 
@@ -55,6 +56,9 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
         }
         if (StringUtils.isNotBlank(name)) {
             queryWrapper.like("name", name);
+        }
+        if (StringUtils.isNotBlank(goodsSn)) {
+            queryWrapper.like("goods_sn", goodsSn);
         }
         //排序
         if (StringUtils.isNotBlank(sortField)) {
@@ -73,7 +77,6 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean lockBatch(List<InventoryLockDTO> inventoryLockDTOList) {
-        ArrayList<Inventory> inventoryList = new ArrayList<>();
         ArrayList<InventoryLog> inventoryLogList = new ArrayList<>();
         for (InventoryLockDTO req : inventoryLockDTOList) {
             // 查询库存
@@ -84,11 +87,29 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             if (inventory.getAvailableQuantity() < req.getQuantity()) {
                 throw new RuntimeException("库存不足：" + req.getGoodsSn());
             }
-
-            // 更新库存数量
-            inventory.setAvailableQuantity(inventory.getAvailableQuantity() - req.getQuantity());
-            inventory.setLockedQuantity(inventory.getLockedQuantity() + req.getQuantity());
-            inventoryList.add(inventory);
+            // 保存旧版本号
+            Integer oldVersion = inventory.getVersion();
+            // 修改库存数量
+            int newAvailable = inventory.getAvailableQuantity() - req.getQuantity();
+            int newLocked = inventory.getLockedQuantity() + req.getQuantity();
+            if (inventory.getMinStock() != null && newAvailable <= inventory.getMinStock()) {
+                inventory.setMinStatus((byte) 1);  // 预警
+            }
+            // 使用乐观锁更新库存
+            int updateCount = inventoryMapper.update(
+                    null,
+                    new LambdaUpdateWrapper<Inventory>()
+                            .eq(Inventory::getId, inventory.getId())
+                            .eq(Inventory::getVersion, oldVersion)
+                            .set(Inventory::getAvailableQuantity, newAvailable)
+                            .set(Inventory::getLockedQuantity, newLocked)
+                            .set(Inventory::getVersion, oldVersion + 1)
+                            .set(inventory.getMinStock() != null && newAvailable <= inventory.getMinStock(), Inventory::getMinStatus, (byte) 1)
+            );
+            // 如果 updateCount == 0，说明 version 不一致，发生并发冲突
+            if (updateCount == 0) {
+                throw new RuntimeException("库存更新失败（乐观锁冲突）：" + req.getGoodsSn());
+            }
 
             // 写日志
             InventoryLog log = new InventoryLog();
@@ -102,7 +123,6 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             log.setCreateTime(LocalDateTime.now());
             inventoryLogList.add(log);
         }
-        inventoryMapper.updateById(inventoryList);
         inventoryLogMapper.insert(inventoryLogList);
         return true;
     }
@@ -111,7 +131,6 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean unlockBatch(List<InventoryLockDTO> inventoryLockDTOList) {
-        ArrayList<Inventory> inventoryList = new ArrayList<>();
         ArrayList<InventoryLog> inventoryLogList = new ArrayList<>();
         for (InventoryLockDTO req : inventoryLockDTOList) {
             // 查询库存
@@ -121,13 +140,24 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             // 更新库存数量
             int locked = inventory.getLockedQuantity();
             int reqQty = req.getQuantity();
-
             // 实际可操作的数量（不能超过 locked）
             int realQty = Math.min(locked, reqQty);
+            if (realQty <= 0) continue;
+            Integer oldVersion = inventory.getVersion();
 
-            inventory.setAvailableQuantity(inventory.getAvailableQuantity() + realQty);
-            inventory.setLockedQuantity(locked - realQty);
-            inventoryList.add(inventory);
+            // 乐观锁更新库存
+            int updateCount = inventoryMapper.update(
+                    null,
+                    new LambdaUpdateWrapper<Inventory>()
+                            .eq(Inventory::getId, inventory.getId())
+                            .eq(Inventory::getVersion, oldVersion) // 乐观锁条件
+                            .set(Inventory::getAvailableQuantity, inventory.getAvailableQuantity() + realQty)
+                            .set(Inventory::getLockedQuantity, locked - realQty)
+                            .set(Inventory::getVersion, oldVersion + 1)
+            );
+            if (updateCount == 0) {
+                throw new RuntimeException("库存解锁失败（乐观锁冲突）：" + req.getGoodsSn());
+            }
 
             // 写日志
             InventoryLog log = new InventoryLog();
@@ -141,7 +171,6 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             log.setCreateTime(LocalDateTime.now());
             inventoryLogList.add(log);
         }
-        inventoryMapper.updateById(inventoryList);
         inventoryLogMapper.insert(inventoryLogList);
         return true;
     }
@@ -196,21 +225,25 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
         if (inventoryExit != null) {
             return false;
         }
+        // 调用商品服务查询商品
+        Goods goods = goodRemoteFacade.selectOne(inventory.getGoodsSn());
 
         // 新增库存
         Inventory inventoryInsert = new Inventory();
-        inventoryInsert.setName(inventory.getName());
+        inventoryInsert.setName(goods.getName());
         inventoryInsert.setGoodsSn(inventory.getGoodsSn());
         inventoryInsert.setTotalQuantity(inventory.getTotalQuantity());
         inventoryInsert.setAvailableQuantity(inventory.getTotalQuantity());
-        inventoryInsert.setLockedQuantity(0);
+        if (inventory.getLockedQuantity() != 0) {
+            inventoryInsert.setLockedQuantity(inventory.getLockedQuantity());
+            inventoryInsert.setAvailableQuantity(inventory.getTotalQuantity() - inventory.getLockedQuantity());
+        } else {
+            inventoryInsert.setLockedQuantity(0);
+        }
         inventoryInsert.setMinStock(inventory.getMinStock() != null ? inventory.getMinStock() : 0);
         inventoryInsert.setCreateTime(new Date());
         inventoryInsert.setUpdateTime(new Date());
-        inventoryInsert.setLockStatus((byte) 0);
         inventoryMapper.insert(inventoryInsert);
-        // 调用商品服务查询商品
-        Goods goods = goodRemoteFacade.selectOne(inventory.getGoodsSn());
 
         // 写日志
         InventoryLog log = new InventoryLog();
@@ -292,19 +325,27 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean reduceInventory(List<InventoryLockDTO> inventoryLockDTOList) {
-        ArrayList<Inventory> inventoryList = new ArrayList<>();
         ArrayList<InventoryLog> inventoryLogList = new ArrayList<>();
         for (InventoryLockDTO req : inventoryLockDTOList) {
             // 查询库存
             Inventory inventory = inventoryMapper.selectOne(new QueryWrapper<Inventory>().eq("goods_sn", req.getGoodsSn()));
 
             if (inventory == null || inventory.getLockedQuantity() == null) continue;
-            // 更新库存数量
+            Integer oldVersion = inventory.getVersion();
 
-            inventory.setTotalQuantity(inventory.getTotalQuantity() - req.getQuantity());
-            inventory.setLockedQuantity(inventory.getLockedQuantity() - req.getQuantity());
-            inventoryList.add(inventory);
-
+            // 乐观锁更新库存
+            int updateCount = inventoryMapper.update(
+                    null,
+                    new LambdaUpdateWrapper<Inventory>()
+                            .eq(Inventory::getId, inventory.getId())
+                            .eq(Inventory::getVersion, oldVersion) // 乐观锁条件
+                            .set(Inventory::getTotalQuantity, inventory.getTotalQuantity() - req.getQuantity())
+                            .set(Inventory::getLockedQuantity, inventory.getLockedQuantity() - req.getQuantity())
+                            .set(Inventory::getVersion, oldVersion + 1)
+            );
+            if (updateCount == 0) {
+                throw new RuntimeException("库存扣减失败（乐观锁冲突）：" + req.getGoodsSn());
+            }
             // 写日志
             InventoryLog log = new InventoryLog();
             log.setGoodsSn(inventory.getGoodsSn());
@@ -315,7 +356,6 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
             log.setCreateTime(LocalDateTime.now());
             inventoryLogList.add(log);
         }
-        inventoryMapper.updateById(inventoryList);
         inventoryLogMapper.insert(inventoryLogList);
         return true;
     }

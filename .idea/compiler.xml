@@ -12,7 +12,7 @@
         <module name="sgave-mall-gateway" />
         <module name="sgave-mall-shopping" />
       </profile>
-      <profile name="Annotation profile for sgave-mall-admin" enabled="true">
+      <profile name="Annotation profile for sgave-mall-micro" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

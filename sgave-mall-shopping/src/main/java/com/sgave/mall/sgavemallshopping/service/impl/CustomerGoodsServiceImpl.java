@@ -64,7 +64,11 @@ public class CustomerGoodsServiceImpl implements CustomerGoodsService {
         if (goods == null) {
             goods = goodsMapper.selectById(goodsId);
             Inventory inventory = inventoryRemoteFacade.selectOne(goods.getGoodsSn());
-            goods.setStock(inventory.getAvailableQuantity());
+            if (inventory == null) {
+                goods.setStock(0);
+            } else {
+                goods.setStock(inventory.getAvailableQuantity());
+            }
             if (goods != null) {
                 redisTemplate.opsForValue().set(key, goods, 60, TimeUnit.MINUTES);
             }

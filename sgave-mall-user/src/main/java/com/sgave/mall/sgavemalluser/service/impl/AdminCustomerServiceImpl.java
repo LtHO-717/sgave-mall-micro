@@ -3,7 +3,7 @@ package com.sgave.mall.sgavemalluser.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.sgave.mall.sgavemalluser.dto.CustomerUser;
+import com.sgave.mall.sgavemalluser.pojo.CustomerUser;
 import com.sgave.mall.sgavemalluser.mapper.CustomerMapper;
 import com.sgave.mall.sgavemalluser.service.AdminCustomerService;
 import jakarta.annotation.Resource;

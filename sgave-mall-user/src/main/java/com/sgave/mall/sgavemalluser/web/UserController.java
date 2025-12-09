@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemalluser.web;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.sgave.mall.sgavemalluser.dto.CustomerUser;
+import com.sgave.mall.sgavemalluser.pojo.CustomerUser;
 import com.sgave.mall.sgavemalluser.service.AdminCustomerService;
 import com.sgave.mall.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;

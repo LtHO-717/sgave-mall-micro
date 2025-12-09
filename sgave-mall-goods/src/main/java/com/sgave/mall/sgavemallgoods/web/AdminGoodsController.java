@@ -2,7 +2,7 @@ package com.sgave.mall.sgavemallgoods.web;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.sgave.mall.sgavemallgoods.dto.Goods;
+import com.sgave.mall.sgavemallgoods.pojo.Goods;
 import com.sgave.mall.sgavemallgoods.mapper.GoodsMapper;
 import com.sgave.mall.sgavemallgoods.service.GoodsService;
 import com.sgave.mall.util.ResponseUtil;

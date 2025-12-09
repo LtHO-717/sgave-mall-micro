@@ -9,17 +9,9 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 @Configuration
 public class GatewayCorsConfig {
 
-    private final CorsProperties corsProperties;
-
-    public GatewayCorsConfig(CorsProperties corsProperties) {
-        this.corsProperties = corsProperties;
-    }
-
-
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-//        corsProperties.getAllowedOrigins().forEach(config::addAllowedOrigin);
         config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");

@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemalluser.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.sgave.mall.sgavemalluser.dto.AdminUser;
+import com.sgave.mall.sgavemalluser.pojo.AdminUser;
 import com.sgave.mall.sgavemalluser.mapper.AdminMapper;
 import com.sgave.mall.sgavemalluser.service.AdminService;
 import jakarta.annotation.Resource;

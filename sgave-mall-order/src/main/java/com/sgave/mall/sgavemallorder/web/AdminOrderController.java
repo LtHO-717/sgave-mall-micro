@@ -31,16 +31,13 @@ public class AdminOrderController {
     @Operation(summary = "查询订单列表接口")
     @GetMapping("/list")
     public Object list(
-            @RequestParam(name = "userId", required = false) Integer userId,
             @RequestParam(name = "orderSn", required = false) String orderSn,
-            @RequestParam(name = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-            @RequestParam(name = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
-            @RequestParam(name = "orderStatusArray", required = false) List<Short> orderStatusArray,
+            @RequestParam(name = "orderStatus", required = false) Short orderStatus,
             @RequestParam(name = "page", defaultValue = "1") Integer page,
             @RequestParam(name = "limit", defaultValue = "10") Integer limit,
             @RequestParam(name = "sort", defaultValue = "create_time") String sort,
             @RequestParam(name = "order", defaultValue = "desc") String order) {
-        IPage<Order> orderIPage = adminOrderService.list(userId, orderSn, start, end, orderStatusArray, page, limit, sort, order);
+        IPage<Order> orderIPage = adminOrderService.list(orderSn, orderStatus, page, limit, sort, order);
         return ResponseUtil.okList(orderIPage);
     }
 

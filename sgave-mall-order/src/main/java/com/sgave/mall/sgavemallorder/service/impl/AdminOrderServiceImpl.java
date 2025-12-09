@@ -48,15 +48,12 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
 
     @Override
-    public IPage<Order> list(Integer userId, String orderSn, LocalDateTime start, LocalDateTime end, List<Short> orderStatusArray, Integer page, Integer limit, String sort, String order) {
+    public IPage<Order> list(String orderSn, Short orderStatus, Integer page, Integer limit, String sort, String order) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
 
         // 构造查询条件
-        wrapper.eq(userId != null, Order::getUserId, userId)
-                .eq(StringUtils.hasText(orderSn), Order::getOrderNo, orderSn)
-                .ge(start != null, Order::getCreateTime, start)
-                .le(end != null, Order::getCancelTime, end)
-                .in(orderStatusArray != null && !orderStatusArray.isEmpty(), Order::getStatus, orderStatusArray);
+        wrapper.eq(StringUtils.hasText(orderSn), Order::getOrderNo, orderSn)
+                .eq(orderStatus != null, Order::getStatus, orderStatus);
 
         // 排序
         if (StringUtils.hasText(sort) && StringUtils.hasText(order)) {

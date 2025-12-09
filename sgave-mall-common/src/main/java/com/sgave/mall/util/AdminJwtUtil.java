@@ -26,7 +26,7 @@ public class AdminJwtUtil {
     // 签名的观众
     static final String AUDIENCE = "MINIAPP";
 
-    public static String createToken(Integer userId) {
+    public static String createToken(Integer userId, String userName) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET);
             Map<String, Object> map = new HashMap<String, Object>();
@@ -41,7 +41,7 @@ public class AdminJwtUtil {
                     // 设置 载荷 Payload
                     .withClaim("userId", userId)
                     .withIssuer(ISSUSER)
-                    .withSubject(SUBJECT)
+                    .withSubject(userName)
                     .withAudience(AUDIENCE)
                     // 生成签名的时间
                     .withIssuedAt(nowDate)
@@ -66,7 +66,7 @@ public class AdminJwtUtil {
             Map<String, Claim> claims = jwt.getClaims();
             Claim claim = claims.get("userId");
             return claim.asInt();
-        } catch (JWTVerificationException exception){
+        } catch (JWTVerificationException exception) {
 //			exception.printStackTrace();
         }
 

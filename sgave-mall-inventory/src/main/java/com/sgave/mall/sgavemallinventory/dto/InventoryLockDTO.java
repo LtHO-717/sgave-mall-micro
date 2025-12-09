@@ -9,5 +9,4 @@ public class InventoryLockDTO {
     private String goodsSn;
     private Integer quantity;
     private String orderNo;
-
 }

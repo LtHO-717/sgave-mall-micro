@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemalluser.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.sgave.mall.sgavemalluser.dto.CustomerUser;
+import com.sgave.mall.sgavemalluser.pojo.CustomerUser;
 
 /**
  * @author : zeping

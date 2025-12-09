@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemallgoods.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.sgave.mall.sgavemallgoods.dto.Goods;
+import com.sgave.mall.sgavemallgoods.pojo.Goods;
 
 /**
  * @author : zeping

@@ -1,7 +1,7 @@
 package com.sgave.mall.sgavemallgoods.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.sgave.mall.sgavemallgoods.dto.Goods;
+import com.sgave.mall.sgavemallgoods.pojo.Goods;
 import org.springframework.web.multipart.MultipartFile;
 
 /**

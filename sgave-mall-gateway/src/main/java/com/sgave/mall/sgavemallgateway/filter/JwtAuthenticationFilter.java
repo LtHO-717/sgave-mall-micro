@@ -26,30 +26,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private static final String ADMIN_TOKEN_HEADER = "SGAVE-Mall-Admin-Token";
     private static final String USER_TOKEN_HEADER = "SGAVE-Mall-Token";
 
-    // ⭐ 新增：前台接口路径前缀
-    private static final String[] USER_PATH_PREFIX = {
-            "/customer/**",
-            "/cart/**",
-            "/address/**",
-            "/web/**",
-            "/collect/**",
-            "/order/**",
-            "/footprint/**"
-    };
-
-    // ⭐ 新增：后台接口路径前缀
-    private static final String[] ADMIN_PATH_PREFIX = {
-            "/admin/**",
-            "/goods/**",
-            "/inventory/**",
-            "/admin-order/**",
-            "/user/**",
-            "/excel/**"
-    };
-
     @Autowired
     private JwtProperties jwtProperties;
-
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -59,10 +37,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         if (isWhiteListed(path)) {
             return chain.filter(exchange);
         }
-        String token = getTokenFromRequest(exchange);
+        String token = getTokenFromRequest(exchange, path);
 
         boolean valid;
-        if (isUserPath(path)) {
+        if (isWebPath(path)) {
             // 前台 Web 接口 → 用 WebJwtUtil
             valid = (token != null && WebJwtUtil.verifyTokenAndGetUserId(token) != 0);
         } else {
@@ -116,9 +94,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
 
     // ⭐ 判断是否是前台 Web 接口
-    private boolean isUserPath(String path) {
+    private boolean isWebPath(String path) {
         AntPathMatcher matcher = new AntPathMatcher();
-        for (String pattern : USER_PATH_PREFIX) {
+        for (String pattern : jwtProperties.getWebPathFilters()) {
             if (matcher.match(pattern, path)) {
                 return true;
             }
@@ -126,6 +104,16 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         return false;
     }
 
+    private boolean isAdminPath(String path) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        if (jwtProperties == null || jwtProperties.getAdminPathFilters() == null) return false;
+        for (String pattern : jwtProperties.getAdminPathFilters()) {
+            if (pattern != null && matcher.match(pattern, path)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * 从请求中获取 JWT 令牌
@@ -133,21 +121,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
      * @param exchange
      * @return
      */
-    private String getTokenFromRequest(ServerWebExchange exchange) {
-        String path = exchange.getRequest().getURI().getPath();
-        AntPathMatcher matcher = new AntPathMatcher();
+    private String getTokenFromRequest(ServerWebExchange exchange, String path) {
 
-        // 前台接口 → 使用用户 Token
-        for (String pattern : USER_PATH_PREFIX) {
-            if (matcher.match(pattern, path)) {
-                return exchange.getRequest().getHeaders().getFirst(USER_TOKEN_HEADER);
-            }
+        // 优先判断 Web 路径，然后 Admin 路径，其次默认使用 Admin header（与原逻辑保持一致）
+        if (isWebPath(path)) {
+            return exchange.getRequest().getHeaders().getFirst(USER_TOKEN_HEADER);
         }
-        // 后台接口 → 使用管理员 Token
-        for (String pattern : ADMIN_PATH_PREFIX) {
-            if (matcher.match(pattern, path)) {
-                return exchange.getRequest().getHeaders().getFirst(ADMIN_TOKEN_HEADER);
-            }
+        if (isAdminPath(path)) {
+            return exchange.getRequest().getHeaders().getFirst(ADMIN_TOKEN_HEADER);
         }
         // ⭐ 默认：当路径既不是前台也不是后台 → 默认使用后台 Token
         return exchange.getRequest().getHeaders().getFirst(ADMIN_TOKEN_HEADER);

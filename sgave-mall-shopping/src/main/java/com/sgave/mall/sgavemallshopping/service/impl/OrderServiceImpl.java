@@ -395,7 +395,6 @@ public class OrderServiceImpl implements OrderService {
         //批量插入订单商品明细表
         orderItemMapper.insert(orderItemList);
         //提交订单减少库存
-
         List<RLock> acquiredLocks = new ArrayList<>();
         List<InventoryLockDTO> inventoryLockDTOList = new ArrayList<>();
         try {

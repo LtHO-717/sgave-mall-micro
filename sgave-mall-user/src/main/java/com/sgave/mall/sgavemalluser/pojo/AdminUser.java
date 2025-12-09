@@ -1,4 +1,4 @@
-package com.sgave.mall.sgavemalluser.dto;
+package com.sgave.mall.sgavemalluser.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -12,10 +12,13 @@ import lombok.Data;
  * @createDate : 2025/11/6
  */
 @Data
-@TableName("collect")
-public class Collect extends BaseBean {
+@TableName("admin")
+public class AdminUser extends BaseBean {
     @TableId(type = IdType.AUTO)
     private Integer id;
-    private Integer userId;
-    private Integer goodsId;
+    private String userName;
+    private String fullName;
+    private String password;
+    private String phone;
+    private int status;
 }

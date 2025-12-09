@@ -11,4 +11,5 @@ public interface GoodRemoteService {
 
     @GetMapping("/admin/goods/selectOne")
     Goods selectOne(@RequestParam("goodSn") String goodSn);
+
 }

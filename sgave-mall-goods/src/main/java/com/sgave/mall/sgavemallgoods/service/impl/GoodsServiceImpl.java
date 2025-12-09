@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.sgave.mall.sgavemallgoods.dto.FileInfo;
-import com.sgave.mall.sgavemallgoods.dto.Goods;
+import com.sgave.mall.sgavemallgoods.pojo.FileInfo;
+import com.sgave.mall.sgavemallgoods.pojo.Goods;
 import com.sgave.mall.sgavemallgoods.mapper.FileMapper;
 import com.sgave.mall.sgavemallgoods.mapper.GoodsMapper;
 import com.sgave.mall.sgavemallgoods.service.GoodsService;
@@ -46,6 +46,10 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Override
     public Goods saveGoods(Goods goods) throws IllegalArgumentException {
+        Goods existGood = goodsMapper.selectOne(new LambdaQueryWrapper<Goods>().eq(Goods::getGoodsSn, goods.getGoodsSn()));
+        if (existGood != null) {
+            throw new IllegalArgumentException("商品已经存在");
+        }
         if (StringUtils.isBlank(goods.getName())) {
             throw new IllegalArgumentException("商品名称不能为空");
         }

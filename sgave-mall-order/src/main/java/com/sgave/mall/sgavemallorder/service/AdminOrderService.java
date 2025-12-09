@@ -16,7 +16,7 @@ import java.util.List;
 public interface AdminOrderService {
     Object ship(String orderId);
 
-    IPage<Order> list(Integer userId, String orderSn, LocalDateTime start, LocalDateTime end, List<Short> orderStatusArray, Integer page, Integer limit, String sort, String order);
+    IPage<Order> list(String orderSn, Short orderStatus, Integer page, Integer limit, String sort, String order);
 
     Object detail(@NotNull Integer id);
 
