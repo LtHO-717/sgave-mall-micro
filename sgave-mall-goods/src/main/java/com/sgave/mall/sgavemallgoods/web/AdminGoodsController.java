@@ -23,7 +23,7 @@ import java.util.List;
  */
 @RestController
 @Tag(name = "商品管理")
-@RequestMapping("/admin/goods")
+@RequestMapping("/goods")
 public class AdminGoodsController {
     @Resource
     private GoodsMapper goodsMapper;
@@ -44,7 +44,7 @@ public class AdminGoodsController {
             try {
                 goodsService.saveGoods(goods);
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(e.getMessage());
+                return ResponseUtil.fail(402, e.getMessage());
             }
         } else {
             return ResponseEntity.badRequest().body("null");
@@ -56,11 +56,11 @@ public class AdminGoodsController {
     @Operation(summary = "分页查询")
     @GetMapping("queryPage")
     public Object selectByPage(
-            @RequestParam(name = "goodsId",required = false) Integer goodsId,
-            @RequestParam(name = "goodsSn",required = false) String goodsSn,
-            @RequestParam(name = "name",required = false) String name,
-            @RequestParam(name = "page",defaultValue = "1") Integer page,
-            @RequestParam(name = "limit",defaultValue = "2") Integer limit) {
+            @RequestParam(name = "goodsId", required = false) Integer goodsId,
+            @RequestParam(name = "goodsSn", required = false) String goodsSn,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name = "limit", defaultValue = "2") Integer limit) {
         IPage<Goods> goodsIPage = goodsService.getGoodsList(goodsId, goodsSn, name, page, limit);
         System.out.println("数据总数:" + goodsIPage.getTotal());
         System.out.println("总页数:" + goodsIPage.getPages());

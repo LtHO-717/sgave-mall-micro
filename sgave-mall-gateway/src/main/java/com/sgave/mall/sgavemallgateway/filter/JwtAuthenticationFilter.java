@@ -123,14 +123,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
      */
     private String getTokenFromRequest(ServerWebExchange exchange, String path) {
 
-        // 优先判断 Web 路径，然后 Admin 路径，其次默认使用 Admin header（与原逻辑保持一致）
+        // 优先判断 Web 路径，然后 Admin 路径，其次默认使用 Admin
         if (isWebPath(path)) {
             return exchange.getRequest().getHeaders().getFirst(USER_TOKEN_HEADER);
         }
         if (isAdminPath(path)) {
             return exchange.getRequest().getHeaders().getFirst(ADMIN_TOKEN_HEADER);
         }
-        // ⭐ 默认：当路径既不是前台也不是后台 → 默认使用后台 Token
+        // 当路径既不是前台也不是后台 → 默认使用后台 Token
         return exchange.getRequest().getHeaders().getFirst(ADMIN_TOKEN_HEADER);
     }
 

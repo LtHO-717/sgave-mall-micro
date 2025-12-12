@@ -1,2 +1,9 @@
-com\sgave\mall\config\MyBatisConfig.class
+com\sgave\mall\util\AdminJwtUtil.class
+com\sgave\mall\util\JacksonUtil$3.class
+com\sgave\mall\dto\BaseBean.class
+com\sgave\mall\util\JacksonUtil.class
+com\sgave\mall\constant\AdminResponseCode.class
+com\sgave\mall\util\JacksonUtil$1.class
+com\sgave\mall\util\WebJwtUtil.class
+com\sgave\mall\util\JacksonUtil$2.class
 com\sgave\mall\util\ResponseUtil.class

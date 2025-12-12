@@ -8,7 +8,6 @@ import org.springframework.context.annotation.ComponentScan;
 
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
-@ComponentScan(basePackages = "com.sgave.mall")
 public class SgaveMallGatewayApplication {
 
     public static void main(String[] args) {

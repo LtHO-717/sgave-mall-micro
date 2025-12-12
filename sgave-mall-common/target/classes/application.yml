@@ -1,18 +1,18 @@
 # springdoc-openapi项目配置
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
-  group-configs:
-    - group: 'inventory'
-      paths-to-match: '/**'
-      packages-to-scan: com.sgave.mall.sgavemallinventory.web
-    - group: 'goods'
-      paths-to-match: '/**'
-      packages-to-scan: com.sgave.mall.sgavemallgoods.web
-    - group: 'order'
-      paths-to-match: '/**'
-      packages-to-scan: com.sgave.mall.sgavemallorder.web
+#springdoc:
+#  swagger-ui:
+#    path: /swagger-ui.html
+#    tags-sorter: alpha
+#    operations-sorter: alpha
+#  api-docs:
+#    path: /v3/api-docs
+#  group-configs:
+#    - group: 'inventory'
+#      paths-to-match: '/**'
+#      packages-to-scan: com.sgave.mall.sgavemallinventory.web
+#    - group: 'goods'
+#      paths-to-match: '/**'
+#      packages-to-scan: com.sgave.mall.sgavemallgoods.web
+#    - group: 'order'
+#      paths-to-match: '/**'
+#      packages-to-scan: com.sgave.mall.sgavemallorder.web

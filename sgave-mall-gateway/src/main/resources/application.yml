@@ -7,69 +7,54 @@ spring:
         server-addr: localhost:8848
     gateway:
       routes:
-        # Swagger 文档
+        # 后台商品 Swagger 文档
         - id: goods-docs
           uri: lb://sgave-mall-goods
           predicates:
             - Path=/goods/v3/api-docs
           filters:
             - StripPrefix=1
-
-        # 业务接口
+        # 后台商品 业务接口
         - id: goods
           uri: lb://sgave-mall-goods
           predicates:
-            - Path=/admin/goods/**,/excel/**
-
-        # Swagger 文档
+            - Path=/goods/**,/excel/**
+        # 后台库存 Swagger 文档
         - id: inventory-docs
           uri: lb://sgave-mall-inventory
           predicates:
             - Path=/inventory/v3/api-docs
           filters:
             - StripPrefix=1
-
-        # 业务接口
+        # 后台库存 业务接口
         - id: inventory
           uri: lb://sgave-mall-inventory
           predicates:
             - Path=/inventory/**
-
-        # Swagger 文档
+        # 后台订单 Swagger 文档
         - id: order-docs
           uri: lb://sgave-mall-order
           predicates:
             - Path=/admin-order/v3/api-docs
           filters:
             - StripPrefix=1
-
-        # 业务接口
+        # 后台订单 业务接口
         - id: order
           uri: lb://sgave-mall-order
           predicates:
             - Path=/admin-order/**
-
-        # Swagger 文档
+        # 后台用户 Swagger 文档
         - id: user-docs
           uri: lb://sgave-mall-user
           predicates:
             - Path=/user/v3/api-docs
           filters:
             - StripPrefix=1
-
-        # user 业务接口
+        # 后台用户 user 业务接口
         - id: user
           uri: lb://sgave-mall-user
           predicates:
-            - Path=/user/**
-
-        # admin 业务接口（此处不加 StripPrefix，否则路径被截断）
-        - id: admin
-          uri: lb://sgave-mall-user
-          predicates:
-            - Path=/admin/**
-
-
+            - Path=/user/**,/admin/**
         ##################################################
         # web / 客户端服务 (sgave-mall-shopping)
         ##################################################
@@ -80,7 +65,6 @@ spring:
             - Path=/customer/v3/api-docs
           filters:
             - StripPrefix=1
-
         # 业务接口
         - id: shopping
           uri: lb://sgave-mall-shopping
@@ -106,7 +90,6 @@ jwt:
     - /order/**
     - /footprint/**
   admin-path-filters:
-    - /admin/**
     - /goods/**
     - /inventory/**
     - /admin-order/**
