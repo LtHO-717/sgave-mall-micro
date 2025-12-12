@@ -12,7 +12,7 @@ import lombok.Data;
  * @createDate : 2025/11/6
  */
 @Data
-@TableName("`admin`")
+@TableName("admin")
 public class AdminUser extends BaseBean {
     @TableId(type = IdType.AUTO)
     private Integer id;
