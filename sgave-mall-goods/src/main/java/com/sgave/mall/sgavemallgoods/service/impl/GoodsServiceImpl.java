@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -84,16 +85,37 @@ public class GoodsServiceImpl implements GoodsService {
         return goodsMapper.selectPage(page, queryWrapper);
     }
 
+    //    @Override
+//    public int updateGoods(Goods goods) {
+//        int result = goodsMapper.updateById(goods);
+//        if (result > 0) {
+//            // 更新商品后，更新缓存
+//            redisTemplate.opsForValue().set("goods:" + goods.getId(), goods, 60, TimeUnit.MINUTES);
+//        }
+//        return result;
+//
+//    }
     @Override
     public int updateGoods(Goods goods) {
+        String key = "goods:" + goods.getId();
+        // 第一次删除缓存
+        redisTemplate.delete(key);
+        // 更新数据库
         int result = goodsMapper.updateById(goods);
         if (result > 0) {
-            // 更新商品后，更新缓存
-            redisTemplate.opsForValue().set("goods:" + goods.getId(), goods, 60, TimeUnit.MINUTES);
+            // 延迟第二次删除缓存
+            CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.sleep(500); // 500ms 可根据实际调整
+                    redisTemplate.delete(key);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
         }
         return result;
-
     }
+
 
     @Override
     public int updateGoodsShelf(Integer goodsId, Integer status) {

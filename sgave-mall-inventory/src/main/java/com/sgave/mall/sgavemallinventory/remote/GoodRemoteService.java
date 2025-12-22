@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(value = "sgave-mall-goods")
 public interface GoodRemoteService {
 
-    @GetMapping("/admin/goods/selectOne")
+    @GetMapping("/goods/selectOne")
     Goods selectOne(@RequestParam("goodSn") String goodSn);
 
 }
